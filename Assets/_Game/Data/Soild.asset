@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c18dbfde917f49dc915cafcd8f0a50c, type: 3}
+  m_Name: Soild
+  m_EditorClassIdentifier: Assembly-CSharp::FarmItemData
+  itemId: 1
+  itemName: Soild
+  itemType: 1
+  prefab: {fileID: 5645236241903425263, guid: 515e4304575374cf487daccaa6541cf1, type: 3}
+  size: {x: 1, y: 1}

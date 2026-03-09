@@ -15,5 +15,7 @@ MonoBehaviour:
   itemId: 0
   itemName: Storage
   itemType: 4
+  price: 0
+  icon: {fileID: -5332980952118282455, guid: cc5596c612326436abae3c869b94feaa, type: 3}
   prefab: {fileID: 5415586830569658532, guid: 5250954392ef8490e8c452c13f63b74a, type: 3}
   size: {x: 8, y: 5}

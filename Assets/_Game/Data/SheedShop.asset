@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c18dbfde917f49dc915cafcd8f0a50c, type: 3}
+  m_Name: SheedShop
+  m_EditorClassIdentifier: Assembly-CSharp::FarmItemData
+  itemId: 6
+  itemName: SheedShop
+  itemType: 4
+  price: 0
+  icon: {fileID: 7363153238792404361, guid: 4af51a01c092f4a1183d215dd69fc871, type: 3}
+  prefab: {fileID: 8995203277786535182, guid: b454ea453e6aa404d940c5e35aba2122, type: 3}
+  size: {x: 2, y: 4}

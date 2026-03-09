@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c18dbfde917f49dc915cafcd8f0a50c, type: 3}
+  m_Name: CowBarn
+  m_EditorClassIdentifier: Assembly-CSharp::FarmItemData
+  itemId: 5
+  itemName: CowBarn
+  itemType: 3
+  price: 1500
+  icon: {fileID: 5004775718022313258, guid: cb0f208d6d5e942ce91bf007abd0ee6f, type: 3}
+  prefab: {fileID: 3724968548467567069, guid: 64c731ccb78634803877f87b53dc41e5, type: 3}
+  size: {x: 4, y: 4}

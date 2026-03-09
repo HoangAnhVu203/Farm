@@ -15,5 +15,7 @@ MonoBehaviour:
   itemId: 3
   itemName: ChickenBarn
   itemType: 3
-  prefab: {fileID: 0}
+  price: 1500
+  icon: {fileID: 1888819774733250533, guid: 5486ec4e08e2e4a6798a2cb459fd8b10, type: 3}
+  prefab: {fileID: 3486077411802751350, guid: 5bd59412d14ba49ae921a41b3888d88f, type: 3}
   size: {x: 1, y: 1}

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c18dbfde917f49dc915cafcd8f0a50c, type: 3}
+  m_Name: FoodMachine
+  m_EditorClassIdentifier: Assembly-CSharp::FarmItemData
+  itemId: 7
+  itemName: FoodMachine
+  itemType: 2
+  price: 2500
+  icon: {fileID: -7480621633309970857, guid: 2cf2b95c82d0747ffa2e4efaa065f642, type: 3}
+  prefab: {fileID: 8585645359520049720, guid: 0878d846b2fe343c896fa3229b0b358e, type: 3}
+  size: {x: 3, y: 3}

@@ -26,14 +26,13 @@ public class FarmPlacementController : MonoBehaviour
     [Header("Drag Preview")]
     [SerializeField] private bool allowDragPreview = true;
     [SerializeField] private float previewFollowSpeed = 20f;
-    [SerializeField] private float dragDeadZone = 0.01f;
 
     private readonly Dictionary<SpriteRenderer, Color> originalSpriteColors = new();
 
     private FarmItemData currentItemData;
     private GameObject previewObject;
-    private Vector3Int currentPreviewCell;
-    private Vector3Int bestPreviewCell;
+    private Vector3Int currentPreviewCell;   // origin cell của footprint
+    private Vector3Int bestPreviewCell;      // origin cell hợp lệ gần nhất / hiện tại
 
     private bool isPlacing;
     private bool hasValidCell;
@@ -41,8 +40,8 @@ public class FarmPlacementController : MonoBehaviour
     private PlacedFarmItem editingItem;
 
     private bool isDraggingPreview;
-    private Vector2 lastPointerScreenPos;
     private Vector3 previewTargetWorldPos;
+    private Vector3 dragPointerToRootOffset;
 
     public bool IsPlacing => isPlacing;
     public bool IsDraggingPreview => isDraggingPreview;
@@ -89,6 +88,13 @@ public class FarmPlacementController : MonoBehaviour
         {
             if (WasPrimaryPressStarted() && !IsPointerOverUI())
             {
+                // Soil trống đã xử lý click để mở PanelSow -> không move
+                if (SoilInteractionController.Instance != null &&
+                    SoilInteractionController.Instance.IsHandlingSoilClick)
+                {
+                    return;
+                }
+
                 TryPickPlacedItemForMove();
             }
         }
@@ -144,13 +150,12 @@ public class FarmPlacementController : MonoBehaviour
 
         currentPreviewCell = placedItem.originCell;
         bestPreviewCell = currentPreviewCell;
-        hasValidCell = true;
 
-        Vector3 pos = GetPlacementWorldPosition(currentPreviewCell, currentItemData.size);
+        Vector3 pos = GetRootWorldFromOriginCell(currentPreviewCell);
         previewObject.transform.position = pos;
         previewTargetWorldPos = pos;
 
-        RefreshPreviewValidation();
+        RefreshPreviewValidationByCell(currentPreviewCell);
 
         if (buyUI != null)
         {
@@ -165,39 +170,34 @@ public class FarmPlacementController : MonoBehaviour
 
         if (!isDraggingPreview && WasPrimaryPressStarted())
         {
-            if (IsPointerOverUI())
-                return;
-
             Vector2 screenPos = GetPrimaryScreenPosition();
 
-            // Chỉ kéo item nếu bấm đúng vào preview
             if (!IsScreenPointOnPreview(screenPos))
                 return;
 
             isDraggingPreview = true;
-            lastPointerScreenPos = screenPos;
-            previewTargetWorldPos = previewObject.transform.position;
+
+            Vector3 pressWorld = GetWorldPositionFromScreen(screenPos);
+            dragPointerToRootOffset = previewObject.transform.position - pressWorld;
+            dragPointerToRootOffset.z = 0f;
             return;
         }
 
         if (isDraggingPreview && IsPrimaryPressed())
         {
             Vector2 currentScreenPos = GetPrimaryScreenPosition();
+            Vector3 pointerWorld = GetWorldPositionFromScreen(currentScreenPos);
 
-            Vector3 prevWorld = GetWorldPositionFromScreen(lastPointerScreenPos);
-            Vector3 currWorld = GetWorldPositionFromScreen(currentScreenPos);
+            Vector3 desiredRootWorld = pointerWorld + dragPointerToRootOffset;
+            desiredRootWorld.z = 0f;
 
-            Vector3 worldDelta = currWorld - prevWorld;
-            worldDelta.z = 0f;
+            Vector3Int originCell = GetOriginCellFromRootWorld(desiredRootWorld);
 
-            if (worldDelta.sqrMagnitude >= dragDeadZone * dragDeadZone)
-            {
-                previewTargetWorldPos += worldDelta;
-                previewTargetWorldPos.z = 0f;
-                RefreshPreviewValidation();
-            }
+            currentPreviewCell = originCell;
+            previewTargetWorldPos = GetRootWorldFromOriginCell(originCell);
+            previewTargetWorldPos.z = 0f;
 
-            lastPointerScreenPos = currentScreenPos;
+            RefreshPreviewValidationByCell(originCell);
             return;
         }
 
@@ -220,30 +220,37 @@ public class FarmPlacementController : MonoBehaviour
 
     private void RefreshPreviewValidation()
     {
+        RefreshPreviewValidationByCell(currentPreviewCell);
+    }
+
+    private void RefreshPreviewValidationByCell(Vector3Int originCell)
+    {
         if (previewObject == null || currentItemData == null) return;
+        if (FarmItemZoneSystem.Instance == null) return;
 
-        Vector3Int pointerCell = groundTilemap.WorldToCell(previewTargetWorldPos);
-        currentPreviewCell = pointerCell;
+        Vector2Int footprint = GetFootprintSize();
 
-        bool canPlaceAtPointer = FarmItemZoneSystem.Instance != null &&
-                                 FarmItemZoneSystem.Instance.CanPlaceItemOnTilemap(
-                                     groundTilemap,
-                                     pointerCell,
-                                     currentItemData.size,
-                                     currentItemData.itemType,
-                                     editingItem
-                                 );
+        currentPreviewCell = originCell;
 
-        if (canPlaceAtPointer)
+        bool canPlace = FarmItemZoneSystem.Instance.CanPlaceItemOnTilemap(
+            groundTilemap,
+            originCell,
+            footprint,
+            currentItemData.itemType,
+            editingItem
+        );
+
+        if (canPlace)
         {
-            bestPreviewCell = pointerCell;
+            bestPreviewCell = originCell;
             hasValidCell = true;
             SetPreviewColor(previewObject, validColor);
-            return;
         }
-
-        hasValidCell = false;
-        SetPreviewColor(previewObject, invalidColor);
+        else
+        {
+            hasValidCell = false;
+            SetPreviewColor(previewObject, invalidColor);
+        }
     }
 
     public void ConfirmPlacement()
@@ -255,23 +262,25 @@ public class FarmPlacementController : MonoBehaviour
 
         currentPreviewCell = bestPreviewCell;
 
+        Vector2Int footprint = GetFootprintSize();
+
         bool canPlace = FarmItemZoneSystem.Instance.CanPlaceItemOnTilemap(
             groundTilemap,
             currentPreviewCell,
-            currentItemData.size,
+            footprint,
             currentItemData.itemType,
             editingItem
         );
 
         if (!canPlace) return;
 
-        Vector3 snappedPos = GetPlacementWorldPosition(currentPreviewCell, currentItemData.size);
+        Vector3 snappedPos = GetRootWorldFromOriginCell(currentPreviewCell);
         previewObject.transform.position = snappedPos;
         previewTargetWorldPos = snappedPos;
 
         List<Vector3Int> cells = FarmItemZoneSystem.Instance.GetOccupiedCells(
             currentPreviewCell,
-            currentItemData.size
+            footprint
         );
 
         if (editingItem == null)
@@ -304,6 +313,11 @@ public class FarmPlacementController : MonoBehaviour
             }
         }
 
+        if (FarmPlacedItemRegistry.Instance != null && FarmSaveManager.Instance != null)
+        {
+            FarmSaveManager.Instance.SavePlacedItems(FarmPlacedItemRegistry.Instance.GetAll());
+        }
+
         previewObject = null;
         currentItemData = null;
         editingItem = null;
@@ -331,7 +345,7 @@ public class FarmPlacementController : MonoBehaviour
                 FarmGridOccupancy.Instance.OccupyCells(editingItem.occupiedCells, editingItem);
             }
 
-            Vector3 oldPos = GetPlacementWorldPosition(editingItem.originCell, editingItem.itemData.size);
+            Vector3 oldPos = GetRootWorldFromOriginCell(editingItem.originCell);
             editingItem.transform.position = oldPos;
 
             RestoreOriginalColors(editingItem.gameObject);
@@ -365,7 +379,7 @@ public class FarmPlacementController : MonoBehaviour
                 FarmGridOccupancy.Instance.OccupyCells(editingItem.occupiedCells, editingItem);
             }
 
-            Vector3 oldPos = GetPlacementWorldPosition(editingItem.originCell, editingItem.itemData.size);
+            Vector3 oldPos = GetRootWorldFromOriginCell(editingItem.originCell);
             editingItem.transform.position = oldPos;
 
             RestoreOriginalColors(editingItem.gameObject);
@@ -390,6 +404,26 @@ public class FarmPlacementController : MonoBehaviour
         Collider2D hit = Physics2D.OverlapPoint(pressWorld);
         if (hit != null)
         {
+            // Ưu tiên check SoilPlot trước
+            SoilPlot soil = hit.GetComponentInParent<SoilPlot>();
+            if (soil != null)
+            {
+                // Soil trống: không move
+                if (!soil.IsPlanted)
+                {
+                    return;
+                }
+
+                // Soil đã trồng: nếu object này có PlacedFarmItem thì cho move
+                PlacedFarmItem soilPlaced = hit.GetComponentInParent<PlacedFarmItem>();
+                if (soilPlaced != null)
+                {
+                    StartMovingPlacedItem(soilPlaced);
+                    return;
+                }
+            }
+
+            // Các placed item khác
             PlacedFarmItem placed = hit.GetComponentInParent<PlacedFarmItem>();
             if (placed != null)
             {
@@ -403,6 +437,11 @@ public class FarmPlacementController : MonoBehaviour
         if (FarmGridOccupancy.Instance != null &&
             FarmGridOccupancy.Instance.TryGetPlacedItemAtCell(cell, out var placedByCell))
         {
+            // Nếu là SoilPlot mà chưa trồng thì không move
+            SoilPlot soilByCell = placedByCell.GetComponent<SoilPlot>();
+            if (soilByCell != null && !soilByCell.IsPlanted)
+                return;
+
             StartMovingPlacedItem(placedByCell);
         }
     }
@@ -416,11 +455,12 @@ public class FarmPlacementController : MonoBehaviour
         );
         centerWorld.z = 0f;
 
-        Vector3Int centerCell = groundTilemap.WorldToCell(centerWorld);
+        Vector3Int originCell = groundTilemap.WorldToCell(centerWorld);
+        Vector2Int footprint = GetFootprintSize();
 
         Vector3Int bestCell = FindNearestValidCell(
-            centerCell,
-            currentItemData.size,
+            originCell,
+            footprint,
             currentItemData.itemType,
             nearestValidSearchRadius,
             null
@@ -428,13 +468,12 @@ public class FarmPlacementController : MonoBehaviour
 
         currentPreviewCell = bestCell;
         bestPreviewCell = bestCell;
-        hasValidCell = true;
 
-        Vector3 pos = GetPlacementWorldPosition(bestCell, currentItemData.size);
+        Vector3 pos = GetRootWorldFromOriginCell(bestCell);
         previewObject.transform.position = pos;
         previewTargetWorldPos = pos;
 
-        RefreshPreviewValidation();
+        RefreshPreviewValidationByCell(bestCell);
     }
 
     private Vector3Int FindNearestValidCell(
@@ -477,6 +516,7 @@ public class FarmPlacementController : MonoBehaviour
         if (currentItemData == null) return;
 
         BoundsInt bounds = groundTilemap.cellBounds;
+        Vector2Int footprint = GetFootprintSize();
 
         for (int y = bounds.yMin; y < bounds.yMax; y++)
         {
@@ -488,7 +528,7 @@ public class FarmPlacementController : MonoBehaviour
                                 FarmItemZoneSystem.Instance.CanPlaceItemOnTilemap(
                                     groundTilemap,
                                     cell,
-                                    currentItemData.size,
+                                    footprint,
                                     currentItemData.itemType
                                 );
 
@@ -496,13 +536,12 @@ public class FarmPlacementController : MonoBehaviour
                 {
                     currentPreviewCell = cell;
                     bestPreviewCell = cell;
-                    hasValidCell = true;
 
-                    Vector3 pos = GetPlacementWorldPosition(cell, currentItemData.size);
+                    Vector3 pos = GetRootWorldFromOriginCell(cell);
                     previewObject.transform.position = pos;
                     previewTargetWorldPos = pos;
 
-                    RefreshPreviewValidation();
+                    RefreshPreviewValidationByCell(cell);
                     return;
                 }
             }
@@ -512,11 +551,11 @@ public class FarmPlacementController : MonoBehaviour
         bestPreviewCell = Vector3Int.zero;
         hasValidCell = false;
 
-        Vector3 zeroPos = GetPlacementWorldPosition(Vector3Int.zero, currentItemData.size);
+        Vector3 zeroPos = GetRootWorldFromOriginCell(Vector3Int.zero);
         previewObject.transform.position = zeroPos;
         previewTargetWorldPos = zeroPos;
 
-        RefreshPreviewValidation();
+        RefreshPreviewValidationByCell(Vector3Int.zero);
     }
 
     public bool IsScreenPointOnPreview(Vector2 screenPos)
@@ -603,26 +642,10 @@ public class FarmPlacementController : MonoBehaviour
         return world;
     }
 
-    private Vector3 GetPlacementWorldPosition(Vector3Int originCell, Vector2Int size)
-    {
-        Vector3Int lastCell = new Vector3Int(
-            originCell.x + size.x - 1,
-            originCell.y + size.y - 1,
-            originCell.z
-        );
-
-        Vector3 start = groundTilemap.GetCellCenterWorld(originCell);
-        Vector3 end = groundTilemap.GetCellCenterWorld(lastCell);
-
-        return (start + end) * 0.5f;
-    }
-
     private void SetPreviewVisual(GameObject obj, bool isPreview)
     {
         if (obj == null) return;
 
-        // để collider vẫn bật khi preview,
-        // nhờ vậy có thể click lại vào item để kéo tiếp
         var colliders = obj.GetComponentsInChildren<Collider2D>(true);
         for (int i = 0; i < colliders.Length; i++)
         {
@@ -680,4 +703,42 @@ public class FarmPlacementController : MonoBehaviour
             }
         }
     }
-}
+
+    private PlaceableObject GetPlaceable(GameObject obj)
+    {
+        if (obj == null) return null;
+        return obj.GetComponent<PlaceableObject>();
+    }
+
+    private Vector2Int GetFootprintSize()
+    {
+        var placeable = GetPlaceable(previewObject);
+        if (placeable != null)
+            return placeable.footprintSize;
+
+        return currentItemData != null ? currentItemData.size : Vector2Int.one;
+    }
+
+    private Vector3 GetFootLocalOffset()
+    {
+        var placeable = GetPlaceable(previewObject);
+        if (placeable != null && placeable.footAnchor != null)
+        {
+            return placeable.footAnchor.localPosition;
+        }
+
+        return Vector3.zero;
+    }
+
+    private Vector3Int GetOriginCellFromRootWorld(Vector3 rootWorldPos)
+    {
+        Vector3 footWorld = rootWorldPos + GetFootLocalOffset();
+        return groundTilemap.WorldToCell(footWorld);
+    }
+
+    private Vector3 GetRootWorldFromOriginCell(Vector3Int originCell)
+    {
+        Vector3 footCellCenter = groundTilemap.GetCellCenterWorld(originCell);
+        return footCellCenter - GetFootLocalOffset();
+    }
+} 

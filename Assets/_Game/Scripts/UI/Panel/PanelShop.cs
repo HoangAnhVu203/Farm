@@ -48,9 +48,7 @@ public class PanelShop : UICanvas
 
         FarmPlacementController.Instance.StartPlacingNewItem(itemData);
 
-        // Nếu UICanvas của bạn có Hide() thì dùng Hide().
-        // Nếu chưa có thì cứ tắt object luôn.
-        gameObject.SetActive(false);
+        UIManager.Instance.CloseUIDirectly<PanelShop>();
     }
 
     void ClearContent()

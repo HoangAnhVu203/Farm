@@ -34,13 +34,13 @@ public class FarmItemZoneSystem : MonoBehaviour
         return zone.points;
     }
 
-    public List<Vector3Int> GetOccupiedCells(Vector3Int originCell, Vector2Int size)
+    public List<Vector3Int> GetOccupiedCells(Vector3Int originCell, Vector2Int footprintSize)
     {
         List<Vector3Int> cells = new();
 
-        for (int x = 0; x < size.x; x++)
+        for (int y = 0; y < footprintSize.y; y++)
         {
-            for (int y = 0; y < size.y; y++)
+            for (int x = 0; x < footprintSize.x; x++)
             {
                 cells.Add(new Vector3Int(originCell.x + x, originCell.y + y, originCell.z));
             }
@@ -52,40 +52,85 @@ public class FarmItemZoneSystem : MonoBehaviour
     public bool CanPlaceItemOnTilemap(
         Tilemap tilemap,
         Vector3Int originCell,
-        Vector2Int size,
-        FarmItemType type,
-        PlacedFarmItem ignoreItem = null
-    )
+        Vector2Int footprintSize,
+        FarmItemType itemType,
+        PlacedFarmItem ignoreItem = null)
     {
-        if (tilemap == null) return false;
-        if (type == FarmItemType.None) return false;
-
-        List<Vector2> polygon = GetZonePoints(type);
-        if (polygon == null || polygon.Count < 3) return false;
-
-        List<Vector3Int> cells = GetOccupiedCells(originCell, size);
-
-        if (FarmGridOccupancy.Instance != null &&
-            FarmGridOccupancy.Instance.AreCellsOccupied(cells, ignoreItem))
-        {
-            return false;
-        }
+        List<Vector3Int> cells = GetOccupiedCells(originCell, footprintSize);
 
         for (int i = 0; i < cells.Count; i++)
         {
             Vector3Int cell = cells[i];
 
+            // 1. Cell phải có tile
             if (!tilemap.HasTile(cell))
                 return false;
 
-            Vector3 world = tilemap.GetCellCenterWorld(cell);
-            Vector2 point = new Vector2(world.x, world.y);
-
-            if (!PolygonService.IsPointInPolygon(point, polygon))
+            // 2. Cell phải nằm trong zone hợp lệ
+            if (!IsCellValidForItemType(tilemap, cell, itemType))
                 return false;
+
+            // 3. Cell không bị vật khác chiếm
+            if (FarmGridOccupancy.Instance != null &&
+                FarmGridOccupancy.Instance.TryGetPlacedItemAtCell(cell, out var other))
+            {
+                if (other != null && other != ignoreItem)
+                    return false;
+            }
         }
 
         return true;
+    }
+
+    private bool IsCellValidForItemType(Tilemap tilemap, Vector3Int cell, FarmItemType itemType)
+    {
+        // Cell center trong world
+        Vector3 world = tilemap.GetCellCenterWorld(cell);
+        Vector2 p = new Vector2(world.x, world.y);
+
+        // None thì không đặt
+        if (itemType == FarmItemType.None)
+            return false;
+
+        // Other:
+        // Nếu bạn muốn Other đặt được ở mọi nơi có tile -> return true;
+        // Nếu muốn Other cũng phải có zone riêng -> giữ như dưới.
+        if (itemType == FarmItemType.Other)
+        {
+            var zoneOther = zones.FirstOrDefault(z => z.type == FarmItemType.Other);
+            if (zoneOther == null || zoneOther.points == null || zoneOther.points.Count < 3)
+                return true;
+
+            return IsPointInsidePolygon(p, zoneOther.points);
+        }
+
+        // Các loại còn lại phải nằm trong polygon zone đúng type
+        var zone = zones.FirstOrDefault(z => z.type == itemType);
+        if (zone == null || zone.points == null || zone.points.Count < 3)
+            return false;
+
+        return IsPointInsidePolygon(p, zone.points);
+    }
+
+    private bool IsPointInsidePolygon(Vector2 point, List<Vector2> polygon)
+    {
+        bool inside = false;
+        int count = polygon.Count;
+
+        for (int i = 0, j = count - 1; i < count; j = i++)
+        {
+            Vector2 pi = polygon[i];
+            Vector2 pj = polygon[j];
+
+            bool intersect =
+                ((pi.y > point.y) != (pj.y > point.y)) &&
+                (point.x < (pj.x - pi.x) * (point.y - pi.y) / ((pj.y - pi.y) + Mathf.Epsilon) + pi.x);
+
+            if (intersect)
+                inside = !inside;
+        }
+
+        return inside;
     }
 
     private void OnDrawGizmos()
@@ -108,8 +153,11 @@ public class FarmItemZoneSystem : MonoBehaviour
                 case FarmItemType.Factory:
                     Gizmos.color = Color.cyan;
                     break;
-                default:
+                case FarmItemType.Other:
                     Gizmos.color = Color.magenta;
+                    break;
+                default:
+                    Gizmos.color = Color.white;
                     break;
             }
 

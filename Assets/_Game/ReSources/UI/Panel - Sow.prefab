@@ -1277,3 +1277,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PanelSow
   isDestroyOnClose: 0
+  riceButton: {fileID: 2749804855718271718}
+  cornButton: {fileID: 2730350674350490793}
+  carrotButton: {fileID: 4038913590564594479}
+  tomatoButton: {fileID: 1052833825258858920}
+  pumpkinButton: {fileID: 3305778393714217253}
+  riceSeed: {fileID: 11400000, guid: ff06aa1320bb442ecbef7e9e942d84f7, type: 2}
+  cornSeed: {fileID: 11400000, guid: 0c4237b58e5144e4cad56dfd2ea2ac33, type: 2}
+  carrotSeed: {fileID: 11400000, guid: 12805f13521a7420bbe13e5ea911d82a, type: 2}
+  tomatoSeed: {fileID: 11400000, guid: af824e2257008409bae78e533d62dd41, type: 2}
+  pumpkinSeed: {fileID: 11400000, guid: c70898d9239de4eab9c6a294880c5f61, type: 2}

@@ -3,14 +3,23 @@ using UnityEngine;
 
 public class PlacedFarmItem : MonoBehaviour
 {
-    public FarmItemData itemData;
-    public Vector3Int originCell;
-    public List<Vector3Int> occupiedCells = new();
+    public FarmItemData itemData { get; private set; }
+    public Vector3Int originCell { get; private set; }
+    public List<Vector3Int> occupiedCells { get; private set; } = new();
 
-    public void Init(FarmItemData data, Vector3Int cell, List<Vector3Int> cells)
+    public void Init(FarmItemData data, Vector3Int origin, List<Vector3Int> cells)
     {
         itemData = data;
-        originCell = cell;
-        occupiedCells = cells;
+        originCell = origin;
+        occupiedCells = cells ?? new List<Vector3Int>();
+
+        if (FarmPlacedItemRegistry.Instance != null)
+            FarmPlacedItemRegistry.Instance.Register(this);
+    }
+
+    private void OnDestroy()
+    {
+        if (FarmPlacedItemRegistry.Instance != null)
+            FarmPlacedItemRegistry.Instance.Unregister(this);
     }
 }

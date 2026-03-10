@@ -2,16 +2,14 @@ using UnityEngine;
 
 public class PlaceableObject : MonoBehaviour
 {
-    [Header("Info")]
-    public FarmItemType itemType;
+    [Header("Footprint")]
+    public Vector2Int footprintSize = Vector2Int.one;
 
-    [Header("Grid Size")]
-    public Vector2Int size = new Vector2Int(1, 1);
-
-    [Header("Placement")]
-    public Vector3 placementOffset;
-
-    [Header("Rule")]
-    public bool canPlaceOnGround = true;
+    [Header("Placement Rule")]
+    public bool canPlaceOnGrass = true;
     public bool canPlaceOnSoil = false;
+
+    [Header("Refs")]
+    public Transform visualRoot;
+    public Transform footAnchor;
 }

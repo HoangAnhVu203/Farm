@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5491633664233431443}
   - component: {fileID: 944791617895257986}
   - component: {fileID: 691505998088665838}
+  - component: {fileID: 1465023865216508745}
   m_Layer: 0
   m_Name: Soil
   m_TagString: Untagged
@@ -86,7 +87,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 936ea4a28785e4e3ab4a32e83066a561, type: 3}
+  m_Sprite: {fileID: -861981754891101683, guid: 6b69cf5b46a7c42bdb28daa3d1a6c4ad, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -134,7 +135,7 @@ PolygonCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
+    oldSize: {x: 1, y: 0.56}
     newSize: {x: 1, y: 0.56}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -184,6 +185,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoilPlot
   soilRenderer: {fileID: 3878734812532479865}
   cropRenderer: {fileID: 5692628920758474601}
+--- !u!114 &1465023865216508745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5645236241903425263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89d105c17a055354abdcac17c4e50f0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsoSorting
+  foot: {fileID: 6038620444081928628}
+  sr: {fileID: 5692628920758474601}
 --- !u!1 &6005660592268429359
 GameObject:
   m_ObjectHideFlags: 0
@@ -294,7 +309,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

@@ -15,9 +15,76 @@ public class SoilPlot : MonoBehaviour
     public bool IsReadyToHarvest => isPlanted && currentStage == CropGrowthStage.ReadyToHarvest;
     public CropSeedData CurrentSeed => currentSeed;
 
+    private Vector3 cropStartLocalPos;
+
     private void Awake()
     {
+        if (soilRenderer != null && cropRenderer != null)
+        {
+            cropRenderer.sortingLayerID = soilRenderer.sortingLayerID;
+            cropRenderer.sortingOrder = soilRenderer.sortingOrder + 1;
+            cropStartLocalPos = cropRenderer.transform.localPosition;
+        }
+
         RefreshVisual();
+    }
+
+    private void RefreshVisual()
+    {
+        if (cropRenderer == null) return;
+
+        if (!isPlanted || currentSeed == null)
+        {
+            cropRenderer.sprite = null;
+            cropRenderer.enabled = false;
+            cropRenderer.transform.localPosition = cropStartLocalPos;
+            return;
+        }
+
+        cropRenderer.enabled = true;
+
+        switch (currentStage)
+        {
+            case CropGrowthStage.Stage1:
+                cropRenderer.sprite = currentSeed.stage1Sprite;
+                break;
+
+            case CropGrowthStage.Stage2:
+                cropRenderer.sprite = currentSeed.stage2Sprite;
+                break;
+
+            case CropGrowthStage.ReadyToHarvest:
+                cropRenderer.sprite = currentSeed.stage3Sprite;
+                break;
+        }
+
+        MatchCropBottomToSoil();
+    }
+
+    private void MatchCropBottomToSoil()
+    {
+        if (soilRenderer == null || cropRenderer == null) return;
+        if (cropRenderer.sprite == null) return;
+
+        cropRenderer.transform.localPosition = cropStartLocalPos;
+
+        Bounds soilBounds = soilRenderer.bounds;
+        Bounds cropBounds = cropRenderer.bounds;
+
+        float deltaY = soilBounds.min.y - cropBounds.min.y;
+
+        Vector3 worldPos = cropRenderer.transform.position;
+        worldPos.y += deltaY;
+
+        if (cropRenderer.transform.parent != null)
+        {
+            cropRenderer.transform.localPosition =
+                cropRenderer.transform.parent.InverseTransformPoint(worldPos);
+        }
+        else
+        {
+            cropRenderer.transform.position = worldPos;
+        }
     }
 
     private void Update()
@@ -93,34 +160,7 @@ public class SoilPlot : MonoBehaviour
         }
     }
 
-    private void RefreshVisual()
-    {
-        if (cropRenderer == null) return;
-
-        if (!isPlanted || currentSeed == null)
-        {
-            cropRenderer.sprite = null;
-            cropRenderer.enabled = false;
-            return;
-        }
-
-        cropRenderer.enabled = true;
-
-        switch (currentStage)
-        {
-            case CropGrowthStage.Stage1:
-                cropRenderer.sprite = currentSeed.stage1Sprite;
-                break;
-
-            case CropGrowthStage.Stage2:
-                cropRenderer.sprite = currentSeed.stage2Sprite;
-                break;
-
-            case CropGrowthStage.ReadyToHarvest:
-                cropRenderer.sprite = currentSeed.stage3Sprite;
-                break;
-        }
-    }
+    
 
     private void OnMouseDown()
     {
@@ -142,5 +182,7 @@ public class SoilPlot : MonoBehaviour
         {
             UIManager.Instance.OpenUI<PanelSow>();
         }
-}
+    }
+
+    
 }

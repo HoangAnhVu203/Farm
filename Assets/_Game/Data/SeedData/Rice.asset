@@ -16,5 +16,5 @@ MonoBehaviour:
   cropName: Rice
   growDurationSeconds: 20
   stage1Sprite: {fileID: 2268137170387821251, guid: c6a6f16bcb1cf4f09bffe6543fda7887, type: 3}
-  stage2Sprite: {fileID: 21300000, guid: b10fea1ec75294b72b0d42bc82aa1cac, type: 3}
-  stage3Sprite: {fileID: 21300000, guid: 1a0bbe356cfdb4bd4ba1aaf38266a1a6, type: 3}
+  stage2Sprite: {fileID: 7008873624611036555, guid: a31b37e82bb73411a8ca472adb15b266, type: 3}
+  stage3Sprite: {fileID: 7878423251742554125, guid: 1a0bbe356cfdb4bd4ba1aaf38266a1a6, type: 3}

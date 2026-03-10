@@ -15,37 +15,38 @@ public class FarmPlacementController : MonoBehaviour
     [SerializeField] private Tilemap groundTilemap;
     [SerializeField] private PanelBuyUI buyUI;
 
-    [Header("Preview")]
+    [Header("Preview Color")]
     [SerializeField] private Color validColor = new Color(0f, 1f, 0f, 0.7f);
     [SerializeField] private Color invalidColor = new Color(1f, 0f, 0f, 0.7f);
 
     [Header("Spawn Preview")]
     [SerializeField] private bool spawnAtScreenCenter = true;
-    [SerializeField] private int nearestValidSearchRadius = 12;
+    [SerializeField] private int nearestValidSearchRadius = 8;
 
-    [Header("Drag")]
+    [Header("Drag Preview")]
     [SerializeField] private bool allowDragPreview = true;
-
-    [Header("Camera Follow Preview")]
-    [SerializeField] private bool cameraFollowPreview = true;
-    [SerializeField] private bool snapCameraToPreview = true;
-    [SerializeField] private float cameraFollowLerp = 12f;
-    [SerializeField] private Vector3 cameraFollowOffset = Vector3.zero;
+    [SerializeField] private float previewFollowSpeed = 20f;
+    [SerializeField] private float dragDeadZone = 0.01f;
 
     private readonly Dictionary<SpriteRenderer, Color> originalSpriteColors = new();
 
     private FarmItemData currentItemData;
     private GameObject previewObject;
     private Vector3Int currentPreviewCell;
+    private Vector3Int bestPreviewCell;
+
     private bool isPlacing;
+    private bool hasValidCell;
 
     private PlacedFarmItem editingItem;
 
     private bool isDraggingPreview;
     private Vector2 lastPointerScreenPos;
-    private Vector3 previewDragWorldPos;
+    private Vector3 previewTargetWorldPos;
 
     public bool IsPlacing => isPlacing;
+    public bool IsDraggingPreview => isDraggingPreview;
+    public GameObject PreviewObject => previewObject;
 
     private void Awake()
     {
@@ -76,7 +77,8 @@ public class FarmPlacementController : MonoBehaviour
 
         if (isPlacing)
         {
-            HandlePreviewDrag();
+            HandlePreviewInput();
+            SmoothMovePreview();
 
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
@@ -92,15 +94,6 @@ public class FarmPlacementController : MonoBehaviour
         }
     }
 
-    private void LateUpdate()
-    {
-        if (!isPlacing) return;
-        if (!cameraFollowPreview) return;
-        if (previewObject == null || mainCamera == null) return;
-
-        FollowPreview();
-    }
-
     public void StartPlacingNewItem(FarmItemData itemData)
     {
         if (itemData == null || itemData.prefab == null) return;
@@ -111,17 +104,16 @@ public class FarmPlacementController : MonoBehaviour
         isPlacing = true;
         editingItem = null;
         isDraggingPreview = false;
+        hasValidCell = false;
 
         previewObject = Instantiate(itemData.prefab);
         CacheOriginalColors(previewObject);
         SetPreviewVisual(previewObject, true);
 
         if (spawnAtScreenCenter)
-            MovePreviewToScreenCenter();
+            SpawnPreviewNearCameraCenter();
         else
             MovePreviewToFirstValidZone();
-
-        previewDragWorldPos = previewObject.transform.position;
 
         if (buyUI != null)
         {
@@ -139,6 +131,7 @@ public class FarmPlacementController : MonoBehaviour
         isPlacing = true;
         editingItem = placedItem;
         isDraggingPreview = false;
+        hasValidCell = false;
 
         if (FarmGridOccupancy.Instance != null)
         {
@@ -150,9 +143,14 @@ public class FarmPlacementController : MonoBehaviour
         SetPreviewVisual(previewObject, true);
 
         currentPreviewCell = placedItem.originCell;
-        UpdatePreviewTransform(currentPreviewCell);
+        bestPreviewCell = currentPreviewCell;
+        hasValidCell = true;
 
-        previewDragWorldPos = previewObject.transform.position;
+        Vector3 pos = GetPlacementWorldPosition(currentPreviewCell, currentItemData.size);
+        previewObject.transform.position = pos;
+        previewTargetWorldPos = pos;
+
+        RefreshPreviewValidation();
 
         if (buyUI != null)
         {
@@ -160,26 +158,28 @@ public class FarmPlacementController : MonoBehaviour
         }
     }
 
-    private void HandlePreviewDrag()
+    private void HandlePreviewInput()
     {
         if (!allowDragPreview) return;
         if (previewObject == null || currentItemData == null) return;
 
-        // Bắt đầu kéo
         if (!isDraggingPreview && WasPrimaryPressStarted())
         {
-            // Khi đang placing thì không chặn quá gắt bởi UI nữa,
-            // để trường hợp vừa mua xong vẫn có thể nhấn kéo được.
-            if (editingItem != null && IsPointerOverUI())
+            if (IsPointerOverUI())
+                return;
+
+            Vector2 screenPos = GetPrimaryScreenPosition();
+
+            // Chỉ kéo item nếu bấm đúng vào preview
+            if (!IsScreenPointOnPreview(screenPos))
                 return;
 
             isDraggingPreview = true;
-            lastPointerScreenPos = GetPrimaryScreenPosition();
-            previewDragWorldPos = previewObject.transform.position;
+            lastPointerScreenPos = screenPos;
+            previewTargetWorldPos = previewObject.transform.position;
             return;
         }
 
-        // Đang kéo
         if (isDraggingPreview && IsPrimaryPressed())
         {
             Vector2 currentScreenPos = GetPrimaryScreenPosition();
@@ -188,76 +188,72 @@ public class FarmPlacementController : MonoBehaviour
             Vector3 currWorld = GetWorldPositionFromScreen(currentScreenPos);
 
             Vector3 worldDelta = currWorld - prevWorld;
-            previewDragWorldPos += worldDelta;
-            previewDragWorldPos.z = 0f;
+            worldDelta.z = 0f;
 
-            Vector3Int pointerCell = groundTilemap.WorldToCell(previewDragWorldPos);
-
-            Vector3Int bestCell = FindNearestValidCell(
-                pointerCell,
-                currentItemData.size,
-                currentItemData.itemType,
-                nearestValidSearchRadius,
-                editingItem
-            );
-
-            currentPreviewCell = bestCell;
-            UpdatePreviewTransform(bestCell);
+            if (worldDelta.sqrMagnitude >= dragDeadZone * dragDeadZone)
+            {
+                previewTargetWorldPos += worldDelta;
+                previewTargetWorldPos.z = 0f;
+                RefreshPreviewValidation();
+            }
 
             lastPointerScreenPos = currentScreenPos;
             return;
         }
 
-        // Thả
         if (isDraggingPreview && WasPrimaryPressReleased())
         {
             isDraggingPreview = false;
         }
     }
 
-    private void UpdatePreviewTransform(Vector3Int originCell)
+    private void SmoothMovePreview()
+    {
+        if (previewObject == null) return;
+
+        previewObject.transform.position = Vector3.Lerp(
+            previewObject.transform.position,
+            previewTargetWorldPos,
+            previewFollowSpeed * Time.deltaTime
+        );
+    }
+
+    private void RefreshPreviewValidation()
     {
         if (previewObject == null || currentItemData == null) return;
 
-        Vector3 pos = GetPlacementWorldPosition(originCell, currentItemData.size);
-        previewObject.transform.position = pos;
-        previewDragWorldPos = pos;
+        Vector3Int pointerCell = groundTilemap.WorldToCell(previewTargetWorldPos);
+        currentPreviewCell = pointerCell;
 
-        bool canPlace = FarmItemZoneSystem.Instance != null &&
-                        FarmItemZoneSystem.Instance.CanPlaceItemOnTilemap(
-                            groundTilemap,
-                            originCell,
-                            currentItemData.size,
-                            currentItemData.itemType,
-                            editingItem
-                        );
+        bool canPlaceAtPointer = FarmItemZoneSystem.Instance != null &&
+                                 FarmItemZoneSystem.Instance.CanPlaceItemOnTilemap(
+                                     groundTilemap,
+                                     pointerCell,
+                                     currentItemData.size,
+                                     currentItemData.itemType,
+                                     editingItem
+                                 );
 
-        SetPreviewColor(previewObject, canPlace ? validColor : invalidColor);
-    }
-
-    private void FollowPreview()
-    {
-        Vector3 target = previewObject.transform.position + cameraFollowOffset;
-        target.z = mainCamera.transform.position.z;
-
-        if (snapCameraToPreview)
+        if (canPlaceAtPointer)
         {
-            mainCamera.transform.position = target;
+            bestPreviewCell = pointerCell;
+            hasValidCell = true;
+            SetPreviewColor(previewObject, validColor);
+            return;
         }
-        else
-        {
-            mainCamera.transform.position = Vector3.Lerp(
-                mainCamera.transform.position,
-                target,
-                cameraFollowLerp * Time.deltaTime
-            );
-        }
+
+        hasValidCell = false;
+        SetPreviewColor(previewObject, invalidColor);
     }
 
     public void ConfirmPlacement()
     {
+        if (!isPlacing) return;
         if (currentItemData == null || previewObject == null) return;
         if (FarmItemZoneSystem.Instance == null) return;
+        if (!hasValidCell) return;
+
+        currentPreviewCell = bestPreviewCell;
 
         bool canPlace = FarmItemZoneSystem.Instance.CanPlaceItemOnTilemap(
             groundTilemap,
@@ -268,6 +264,10 @@ public class FarmPlacementController : MonoBehaviour
         );
 
         if (!canPlace) return;
+
+        Vector3 snappedPos = GetPlacementWorldPosition(currentPreviewCell, currentItemData.size);
+        previewObject.transform.position = snappedPos;
+        previewTargetWorldPos = snappedPos;
 
         List<Vector3Int> cells = FarmItemZoneSystem.Instance.GetOccupiedCells(
             currentPreviewCell,
@@ -309,11 +309,10 @@ public class FarmPlacementController : MonoBehaviour
         editingItem = null;
         isPlacing = false;
         isDraggingPreview = false;
+        hasValidCell = false;
 
         if (buyUI != null)
-        {
             buyUI.Hide();
-        }
     }
 
     public void CancelPlacement()
@@ -332,6 +331,9 @@ public class FarmPlacementController : MonoBehaviour
                 FarmGridOccupancy.Instance.OccupyCells(editingItem.occupiedCells, editingItem);
             }
 
+            Vector3 oldPos = GetPlacementWorldPosition(editingItem.originCell, editingItem.itemData.size);
+            editingItem.transform.position = oldPos;
+
             RestoreOriginalColors(editingItem.gameObject);
             SetPreviewVisual(editingItem.gameObject, false);
         }
@@ -341,11 +343,10 @@ public class FarmPlacementController : MonoBehaviour
         editingItem = null;
         isPlacing = false;
         isDraggingPreview = false;
+        hasValidCell = false;
 
         if (buyUI != null)
-        {
             buyUI.Hide();
-        }
     }
 
     private void ForceClearCurrentPreview()
@@ -364,6 +365,9 @@ public class FarmPlacementController : MonoBehaviour
                 FarmGridOccupancy.Instance.OccupyCells(editingItem.occupiedCells, editingItem);
             }
 
+            Vector3 oldPos = GetPlacementWorldPosition(editingItem.originCell, editingItem.itemData.size);
+            editingItem.transform.position = oldPos;
+
             RestoreOriginalColors(editingItem.gameObject);
             SetPreviewVisual(editingItem.gameObject, false);
         }
@@ -373,11 +377,10 @@ public class FarmPlacementController : MonoBehaviour
         editingItem = null;
         isPlacing = false;
         isDraggingPreview = false;
+        hasValidCell = false;
 
         if (buyUI != null)
-        {
             buyUI.Hide();
-        }
     }
 
     private void TryPickPlacedItemForMove()
@@ -404,7 +407,7 @@ public class FarmPlacementController : MonoBehaviour
         }
     }
 
-    private void MovePreviewToScreenCenter()
+    private void SpawnPreviewNearCameraCenter()
     {
         if (currentItemData == null || mainCamera == null) return;
 
@@ -424,7 +427,14 @@ public class FarmPlacementController : MonoBehaviour
         );
 
         currentPreviewCell = bestCell;
-        UpdatePreviewTransform(bestCell);
+        bestPreviewCell = bestCell;
+        hasValidCell = true;
+
+        Vector3 pos = GetPlacementWorldPosition(bestCell, currentItemData.size);
+        previewObject.transform.position = pos;
+        previewTargetWorldPos = pos;
+
+        RefreshPreviewValidation();
     }
 
     private Vector3Int FindNearestValidCell(
@@ -485,14 +495,40 @@ public class FarmPlacementController : MonoBehaviour
                 if (canPlace)
                 {
                     currentPreviewCell = cell;
-                    UpdatePreviewTransform(cell);
+                    bestPreviewCell = cell;
+                    hasValidCell = true;
+
+                    Vector3 pos = GetPlacementWorldPosition(cell, currentItemData.size);
+                    previewObject.transform.position = pos;
+                    previewTargetWorldPos = pos;
+
+                    RefreshPreviewValidation();
                     return;
                 }
             }
         }
 
         currentPreviewCell = Vector3Int.zero;
-        UpdatePreviewTransform(currentPreviewCell);
+        bestPreviewCell = Vector3Int.zero;
+        hasValidCell = false;
+
+        Vector3 zeroPos = GetPlacementWorldPosition(Vector3Int.zero, currentItemData.size);
+        previewObject.transform.position = zeroPos;
+        previewTargetWorldPos = zeroPos;
+
+        RefreshPreviewValidation();
+    }
+
+    public bool IsScreenPointOnPreview(Vector2 screenPos)
+    {
+        if (previewObject == null || mainCamera == null) return false;
+
+        Vector3 world = GetWorldPositionFromScreen(screenPos);
+        Collider2D hit = Physics2D.OverlapPoint(world);
+
+        if (hit == null) return false;
+
+        return hit.transform == previewObject.transform || hit.transform.IsChildOf(previewObject.transform);
     }
 
     private Vector3 GetPrimaryWorldPosition()
@@ -585,10 +621,12 @@ public class FarmPlacementController : MonoBehaviour
     {
         if (obj == null) return;
 
+        // để collider vẫn bật khi preview,
+        // nhờ vậy có thể click lại vào item để kéo tiếp
         var colliders = obj.GetComponentsInChildren<Collider2D>(true);
         for (int i = 0; i < colliders.Length; i++)
         {
-            colliders[i].enabled = !isPreview;
+            colliders[i].enabled = true;
         }
     }
 

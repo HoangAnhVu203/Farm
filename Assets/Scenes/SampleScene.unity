@@ -3600,9 +3600,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraDragController
   cam: {fileID: 519420031}
+  mousePanMultiplier: 1
+  touchPanMultiplier: 1
   zoomMin: 3
   zoomMax: 12
-  zoomSpeed: 0.15
+  mouseZoomSpeed: 0.015
+  pinchZoomSpeed: 0.01
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -42744,12 +42747,9 @@ MonoBehaviour:
   invalidColor: {r: 1, g: 0, b: 0, a: 1}
   spawnAtScreenCenter: 1
   nearestValidSearchRadius: 12
-  cameraFollowPreview: 1
-  keepPreviewAtScreenCenter: 1
-  snapCameraToCenter: 1
-  cameraFollowLerp: 12
-  cameraFollowOffset: {x: 0, y: 0, z: 0}
-  dragPreviewByHold: 1
+  allowDragPreview: 1
+  previewFollowSpeed: 22
+  dragDeadZone: 0.02
 --- !u!1 &926113544 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1224065662098926558, guid: 271c8169ac06b4d27b8db4e428fa3a9c, type: 3}
@@ -43150,6 +43150,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 276116290}
     m_Modifications:
+    - target: {fileID: 5414008722333010141, guid: 71a4aefd437cc45739072922e44d3cbb, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5452433698512745473, guid: 71a4aefd437cc45739072922e44d3cbb, type: 3}
       propertyPath: m_Name
       value: Panel - BuyUI
@@ -43492,6 +43496,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6243786884983060624, guid: 271c8169ac06b4d27b8db4e428fa3a9c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7726632936674495160, guid: 271c8169ac06b4d27b8db4e428fa3a9c, type: 3}
+      propertyPath: m_RaycastTarget
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

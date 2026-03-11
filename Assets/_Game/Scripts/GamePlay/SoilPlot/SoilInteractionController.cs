@@ -60,6 +60,7 @@ public class SoilInteractionController : MonoBehaviour
         if (soil == null) return;
 
         selectedSoil = soil;
+        FocusCameraToSoil(soil, hit);
 
         // Đất chín -> mở panel harvest
         if (soil.IsReadyToHarvest)
@@ -120,5 +121,29 @@ public class SoilInteractionController : MonoBehaviour
             return EventSystem.current.IsPointerOverGameObject(Touch.activeTouches[0].touchId);
 
         return EventSystem.current.IsPointerOverGameObject();
+    }
+
+    private void FocusCameraToSoil(SoilPlot soil, Collider2D hitCollider)
+    {
+        if (CameraFocusController.Instance == null || soil == null)
+            return;
+
+        // ưu tiên focus theo collider đang click
+        if (hitCollider != null)
+        {
+            CameraFocusController.Instance.FocusToPosition(hitCollider.bounds.center);
+            return;
+        }
+
+        // fallback: lấy collider của soil
+        Collider2D col = soil.GetComponentInChildren<Collider2D>();
+        if (col != null)
+        {
+            CameraFocusController.Instance.FocusToPosition(col.bounds.center);
+            return;
+        }
+
+        // fallback cuối
+        CameraFocusController.Instance.FocusTo(soil.transform);
     }
 }

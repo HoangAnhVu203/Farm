@@ -44,6 +44,17 @@ public class CameraDragController : MonoBehaviour
     {
         if (cam == null) return;
 
+        if (CameraFocusController.Instance != null &&
+            CameraFocusController.Instance.IsBusy)
+        {
+            isDraggingMouse = false;
+            isDraggingTouch = false;
+            touchOwnedByPreview = false;
+
+            HandleMouseZoom();
+            return;
+        }
+
         HandleMousePan();
         HandleMouseZoom();
 

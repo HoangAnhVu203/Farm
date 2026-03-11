@@ -42,6 +42,7 @@ public class StorageBuilding : MonoBehaviour
         // Chỉ mở nếu click đúng vào object này hoặc child của nó
         if (hit.transform == transform || hit.transform.IsChildOf(transform))
         {
+            FocusCameraToStorage(hit);
             UIManager.Instance.OpenUI<PanelStorage>();
         }
     }
@@ -90,5 +91,26 @@ public class StorageBuilding : MonoBehaviour
             return EventSystem.current.IsPointerOverGameObject(Touch.activeTouches[0].touchId);
 
         return EventSystem.current.IsPointerOverGameObject();
+    }
+
+    private void FocusCameraToStorage(Collider2D hitCollider)
+    {
+        if (CameraFocusController.Instance == null)
+            return;
+
+        if (hitCollider != null)
+        {
+            CameraFocusController.Instance.FocusToPosition(hitCollider.bounds.center);
+            return;
+        }
+
+        Collider2D col = GetComponentInChildren<Collider2D>();
+        if (col != null)
+        {
+            CameraFocusController.Instance.FocusToPosition(col.bounds.center);
+            return;
+        }
+
+        CameraFocusController.Instance.FocusTo(transform);
     }
 }

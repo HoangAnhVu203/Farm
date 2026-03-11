@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6124650608015272354}
   - component: {fileID: 3903862715660067319}
   m_Layer: 0
-  m_Name: FX
+  m_Name: HarvestFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

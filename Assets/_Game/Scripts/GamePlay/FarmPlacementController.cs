@@ -422,6 +422,7 @@ public class FarmPlacementController : MonoBehaviour
                 PlacedFarmItem soilPlaced = hit.GetComponentInParent<PlacedFarmItem>();
                 if (soilPlaced != null)
                 {
+                    FocusCameraToPlacedItem(soilPlaced, hit);
                     StartMovingPlacedItem(soilPlaced);
                     return;
                 }
@@ -430,6 +431,7 @@ public class FarmPlacementController : MonoBehaviour
             PlacedFarmItem placed = hit.GetComponentInParent<PlacedFarmItem>();
             if (placed != null)
             {
+                FocusCameraToPlacedItem(placed, hit);
                 StartMovingPlacedItem(placed);
                 return;
             }
@@ -746,5 +748,29 @@ public class FarmPlacementController : MonoBehaviour
     {
         Vector3 footCellCenter = groundTilemap.GetCellCenterWorld(originCell);
         return footCellCenter - GetFootLocalOffset();
+    }
+
+    private void FocusCameraToPlacedItem(PlacedFarmItem placedItem, Collider2D hitCollider)
+    {
+        if (CameraFocusController.Instance == null || placedItem == null)
+            return;
+
+        // ưu tiên focus theo collider được click
+        if (hitCollider != null)
+        {
+            CameraFocusController.Instance.FocusToPosition(hitCollider.bounds.center);
+            return;
+        }
+
+        // fallback: lấy collider của object
+        Collider2D col = placedItem.GetComponentInChildren<Collider2D>();
+        if (col != null)
+        {
+            CameraFocusController.Instance.FocusToPosition(col.bounds.center);
+            return;
+        }
+
+        // fallback cuối cùng
+        CameraFocusController.Instance.FocusTo(placedItem.transform);
     }
 } 

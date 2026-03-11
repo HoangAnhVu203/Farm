@@ -83,6 +83,11 @@ public class SoilPlot : MonoBehaviour
         isPlanted = true;
         currentStage = CropGrowthStage.Stage1;
 
+        if (seedData.seedIcon != null && SowFXSpawner.Instance != null)
+        {
+            SowFXSpawner.Instance.PlaySowPopup(transform.position, seedData.seedIcon);
+        }
+
         RefreshVisual();
         SoilSaveManager.Instance?.SaveAllPlots();
     }

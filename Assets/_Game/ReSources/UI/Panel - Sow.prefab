@@ -309,6 +309,7 @@ GameObject:
   - component: {fileID: 8028504354073050699}
   - component: {fileID: 1719078063924774242}
   - component: {fileID: 2730350674350490793}
+  - component: {fileID: 8990258868760185469}
   m_Layer: 5
   m_Name: Button (Legacy) (1)
   m_TagString: Untagged
@@ -418,6 +419,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &8990258868760185469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2459930125235122531}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80e3c9337495e433a8a91e7adceb62ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SeedHoldButton
+  ownerPanel: {fileID: 5288161535635187054}
+  seedData: {fileID: 11400000, guid: 0c4237b58e5144e4cad56dfd2ea2ac33, type: 2}
 --- !u!1 &2620080771720095848
 GameObject:
   m_ObjectHideFlags: 0
@@ -525,6 +540,7 @@ GameObject:
   - component: {fileID: 8787721543262075909}
   - component: {fileID: 1616468249549440069}
   - component: {fileID: 2749804855718271718}
+  - component: {fileID: 6936809851499945289}
   m_Layer: 5
   m_Name: Button (Legacy)
   m_TagString: Untagged
@@ -634,6 +650,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6936809851499945289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3110193675452371245}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80e3c9337495e433a8a91e7adceb62ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SeedHoldButton
+  ownerPanel: {fileID: 5288161535635187054}
+  seedData: {fileID: 11400000, guid: ff06aa1320bb442ecbef7e9e942d84f7, type: 2}
 --- !u!1 &4785693453825355191
 GameObject:
   m_ObjectHideFlags: 0
@@ -646,6 +676,7 @@ GameObject:
   - component: {fileID: 1973399961977305985}
   - component: {fileID: 7359344152986057408}
   - component: {fileID: 1052833825258858920}
+  - component: {fileID: 6154884689488503217}
   m_Layer: 5
   m_Name: Button (Legacy) (3)
   m_TagString: Untagged
@@ -755,6 +786,152 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6154884689488503217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4785693453825355191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80e3c9337495e433a8a91e7adceb62ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SeedHoldButton
+  ownerPanel: {fileID: 5288161535635187054}
+  seedData: {fileID: 11400000, guid: af824e2257008409bae78e533d62dd41, type: 2}
+--- !u!1 &5627975569814236878
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7773817308563313854}
+  - component: {fileID: 260249298615559480}
+  - component: {fileID: 5707082321520515742}
+  - component: {fileID: 1929179928371277644}
+  m_Layer: 5
+  m_Name: Close-DIM
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &7773817308563313854
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5627975569814236878}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7872583246201755661}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &260249298615559480
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5627975569814236878}
+  m_CullTransparentMesh: 1
+--- !u!114 &5707082321520515742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5627975569814236878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1929179928371277644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5627975569814236878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 5707082321520515742}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 5288161535635187054}
+        m_TargetAssemblyTypeName: PanelSow, Assembly-CSharp
+        m_MethodName: CloseUI
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &6130012801248547364
 GameObject:
   m_ObjectHideFlags: 0
@@ -862,6 +1039,7 @@ GameObject:
   - component: {fileID: 7556803898869954250}
   - component: {fileID: 4308619548171135305}
   - component: {fileID: 4038913590564594479}
+  - component: {fileID: 2544444474399748237}
   m_Layer: 5
   m_Name: Button (Legacy) (2)
   m_TagString: Untagged
@@ -971,6 +1149,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2544444474399748237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6192593954661308092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80e3c9337495e433a8a91e7adceb62ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SeedHoldButton
+  ownerPanel: {fileID: 5288161535635187054}
+  seedData: {fileID: 11400000, guid: 12805f13521a7420bbe13e5ea911d82a, type: 2}
 --- !u!1 &6410093318650325659
 GameObject:
   m_ObjectHideFlags: 0
@@ -983,6 +1175,7 @@ GameObject:
   - component: {fileID: 1320319020482400964}
   - component: {fileID: 486253578521676310}
   - component: {fileID: 3305778393714217253}
+  - component: {fileID: 41743190281264306}
   m_Layer: 5
   m_Name: Button (Legacy) (4)
   m_TagString: Untagged
@@ -1092,6 +1285,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &41743190281264306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6410093318650325659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80e3c9337495e433a8a91e7adceb62ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SeedHoldButton
+  ownerPanel: {fileID: 5288161535635187054}
+  seedData: {fileID: 11400000, guid: c70898d9239de4eab9c6a294880c5f61, type: 2}
 --- !u!1 &6485023941820206575
 GameObject:
   m_ObjectHideFlags: 0
@@ -1218,6 +1425,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 7773817308563313854}
   - {fileID: 8520668523270678871}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1277,13 +1485,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PanelSow
   isDestroyOnClose: 0
-  riceButton: {fileID: 2749804855718271718}
-  cornButton: {fileID: 2730350674350490793}
-  carrotButton: {fileID: 4038913590564594479}
-  tomatoButton: {fileID: 1052833825258858920}
-  pumpkinButton: {fileID: 3305778393714217253}
-  riceSeed: {fileID: 11400000, guid: ff06aa1320bb442ecbef7e9e942d84f7, type: 2}
-  cornSeed: {fileID: 11400000, guid: 0c4237b58e5144e4cad56dfd2ea2ac33, type: 2}
-  carrotSeed: {fileID: 11400000, guid: 12805f13521a7420bbe13e5ea911d82a, type: 2}
-  tomatoSeed: {fileID: 11400000, guid: af824e2257008409bae78e533d62dd41, type: 2}
-  pumpkinSeed: {fileID: 11400000, guid: c70898d9239de4eab9c6a294880c5f61, type: 2}
+  panelRoot: {fileID: 6938811709369503388}

@@ -11,14 +11,20 @@ public class SowController : MonoBehaviour
 
     [SerializeField] private Camera mainCamera;
 
-    private CropSeedData selectedSeed;
-    private bool isSowing;
-    private bool isDragging;
+    [Header("Drag Sampling")]
+    [SerializeField] private float sampleSpacing = 0.12f; 
+    [SerializeField] private float overlapRadius = 0.05f; 
 
-    private readonly HashSet<SoilPlot> plantedThisDrag = new();
+    private bool isSowMode;
+    private CropSeedData currentSeed;
 
-    public bool IsSowing => isSowing;
-    public CropSeedData SelectedSeed => selectedSeed;
+    private readonly HashSet<SoilPlot> plantedThisHold = new();
+
+    private bool hasLastPointerWorld;
+    private Vector3 lastPointerWorld;
+
+    public bool IsSowMode => isSowMode;
+    public CropSeedData CurrentSeed => currentSeed;
 
     private void Awake()
     {
@@ -43,72 +49,103 @@ public class SowController : MonoBehaviour
         EnhancedTouchSupport.Disable();
     }
 
-    public void BeginSow(CropSeedData seed)
+    public void BeginSowHold(CropSeedData seed)
     {
-        selectedSeed = seed;
-        isSowing = seed != null;
-        isDragging = false;
-        plantedThisDrag.Clear();
+        if (seed == null) return;
+
+        currentSeed = seed;
+        isSowMode = true;
+        plantedThisHold.Clear();
+
+        hasLastPointerWorld = false;
+
+        SeedCursorUI.Instance?.Show(seed);
     }
 
-    public void CancelSow()
+    public void EndSowHold()
     {
-        selectedSeed = null;
-        isSowing = false;
-        isDragging = false;
-        plantedThisDrag.Clear();
+        isSowMode = false;
+        currentSeed = null;
+        plantedThisHold.Clear();
+
+        hasLastPointerWorld = false;
+
+        SeedCursorUI.Instance?.Hide();
     }
 
     private void Update()
     {
-        if (!isSowing || selectedSeed == null) return;
+        if (!isSowMode || currentSeed == null) return;
 
-        if (WasPrimaryPressStarted())
+        if (!IsPrimaryPressed())
         {
-            if (IsPointerOverUI()) return;
-
-            isDragging = true;
-            plantedThisDrag.Clear();
-            TryPlantAtPointer();
-        }
-        else if (isDragging && IsPrimaryPressed())
-        {
-            TryPlantAtPointer();
-        }
-        else if (isDragging && WasPrimaryPressReleased())
-        {
-            isDragging = false;
-            plantedThisDrag.Clear();
+            EndSowHold();
+            return;
         }
 
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        // Khi đang giữ hạt, không chặn bởi UI nữa vì panel đã ẩn
+        Vector3 currentWorld = GetPrimaryWorldPosition();
+
+        if (!hasLastPointerWorld)
         {
-            CancelSow();
+            hasLastPointerWorld = true;
+            lastPointerWorld = currentWorld;
+            TryPlantAtWorld(currentWorld);
+            return;
+        }
+
+        TryPlantAlongLine(lastPointerWorld, currentWorld);
+        lastPointerWorld = currentWorld;
+    }
+
+    private void TryPlantAlongLine(Vector3 fromWorld, Vector3 toWorld)
+    {
+        float distance = Vector3.Distance(fromWorld, toWorld);
+
+        if (distance <= sampleSpacing)
+        {
+            TryPlantAtWorld(toWorld);
+            return;
+        }
+
+        int steps = Mathf.CeilToInt(distance / sampleSpacing);
+
+        for (int i = 0; i <= steps; i++)
+        {
+            float t = steps == 0 ? 1f : (float)i / steps;
+            Vector3 sample = Vector3.Lerp(fromWorld, toWorld, t);
+            TryPlantAtWorld(sample);
         }
     }
 
-    private void TryPlantAtPointer()
+    private void TryPlantAtWorld(Vector3 world)
     {
-        Vector3 world = GetPrimaryWorldPosition();
-        Collider2D hit = Physics2D.OverlapPoint(world);
-        if (hit == null) return;
+        Collider2D[] hits = Physics2D.OverlapCircleAll(world, overlapRadius);
+        if (hits == null || hits.Length == 0) return;
 
-        SoilPlot soil = hit.GetComponentInParent<SoilPlot>();
-        if (soil == null) return;
-
-        if (plantedThisDrag.Contains(soil)) return;
-
-        if (soil.CanPlant())
+        for (int i = 0; i < hits.Length; i++)
         {
-            soil.Plant(selectedSeed);
-            plantedThisDrag.Add(soil);
+            SoilPlot soil = hits[i].GetComponentInParent<SoilPlot>();
+            if (soil == null) continue;
+            if (plantedThisHold.Contains(soil)) continue;
+
+            if (soil.CanPlant())
+            {
+                soil.Plant(currentSeed);
+                plantedThisHold.Add(soil);
+            }
         }
     }
 
     private Vector3 GetPrimaryWorldPosition()
     {
         Vector2 screenPos = GetPrimaryScreenPosition();
-        Vector3 screen = new Vector3(screenPos.x, screenPos.y, Mathf.Abs(mainCamera.transform.position.z));
+        Vector3 screen = new Vector3(
+            screenPos.x,
+            screenPos.y,
+            Mathf.Abs(mainCamera.transform.position.z)
+        );
+
         Vector3 world = mainCamera.ScreenToWorldPoint(screen);
         world.z = 0f;
         return world;
@@ -123,17 +160,6 @@ public class SowController : MonoBehaviour
             return Mouse.current.position.ReadValue();
 
         return Vector2.zero;
-    }
-
-    private bool WasPrimaryPressStarted()
-    {
-        if (Touch.activeTouches.Count > 0)
-            return Touch.activeTouches[0].phase == UnityEngine.InputSystem.TouchPhase.Began;
-
-        if (Mouse.current != null)
-            return Mouse.current.leftButton.wasPressedThisFrame;
-
-        return false;
     }
 
     private bool IsPrimaryPressed()
@@ -152,28 +178,13 @@ public class SowController : MonoBehaviour
         return false;
     }
 
-    private bool WasPrimaryPressReleased()
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
     {
-        if (Touch.activeTouches.Count > 0)
-        {
-            var phase = Touch.activeTouches[0].phase;
-            return phase == UnityEngine.InputSystem.TouchPhase.Ended
-                || phase == UnityEngine.InputSystem.TouchPhase.Canceled;
-        }
+        if (!hasLastPointerWorld) return;
 
-        if (Mouse.current != null)
-            return Mouse.current.leftButton.wasReleasedThisFrame;
-
-        return false;
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(lastPointerWorld, overlapRadius);
     }
-
-    private bool IsPointerOverUI()
-    {
-        if (EventSystem.current == null) return false;
-
-        if (Touch.activeTouches.Count > 0)
-            return EventSystem.current.IsPointerOverGameObject(Touch.activeTouches[0].touchId);
-
-        return EventSystem.current.IsPointerOverGameObject();
-    }
+#endif
 }

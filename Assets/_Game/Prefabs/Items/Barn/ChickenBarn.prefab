@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2811125132950738285}
   - component: {fileID: 3588405176678251708}
   - component: {fileID: 7969414293181750333}
+  - component: {fileID: 6486895449912674815}
   m_Layer: 0
   m_Name: ChickenBarn
   m_TagString: Untagged
@@ -238,6 +239,20 @@ MonoBehaviour:
   canPlaceOnSoil: 0
   visualRoot: {fileID: 2510432911444761110}
   footAnchor: {fileID: 4809911081804734879}
+--- !u!114 &6486895449912674815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3486077411802751350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89d105c17a055354abdcac17c4e50f0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsoSorting
+  foot: {fileID: 4809911081804734879}
+  sr: {fileID: 2811125132950738285}
 --- !u!1 &6919831702300363243
 GameObject:
   m_ObjectHideFlags: 0

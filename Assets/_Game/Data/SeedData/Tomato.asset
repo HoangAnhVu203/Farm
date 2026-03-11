@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CropSeedData
   id: 3
   cropName: Tomato
-  growDurationSeconds: 120
+  growDurationSeconds: 20
+  seedIcon: {fileID: -3962807554240710951, guid: dcd93a303c2f646939e2c965b18abf57, type: 3}
+  harvestItem: {fileID: 11400000, guid: f882a1fa6958d4653b0e30efc89bae6e, type: 2}
+  harvestAmount: 1
   stage1Sprite: {fileID: 2268137170387821251, guid: c6a6f16bcb1cf4f09bffe6543fda7887, type: 3}
   stage2Sprite: {fileID: -7716461456092825813, guid: efbb958cd49764364a2208af63860698, type: 3}
   stage3Sprite: {fileID: 1164034849194515820, guid: 6155248f6b5ce432b944ba5493b9c0ad, type: 3}

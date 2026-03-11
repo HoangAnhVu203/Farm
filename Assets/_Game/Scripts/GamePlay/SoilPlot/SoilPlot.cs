@@ -7,13 +7,35 @@ public class SoilPlot : MonoBehaviour
     [SerializeField] private SpriteRenderer cropRenderer;
 
     private CropSeedData currentSeed;
-    private float plantedTime;
+    private long plantedUnixTime;
     private bool isPlanted;
     private CropGrowthStage currentStage = CropGrowthStage.Empty;
 
     public bool IsPlanted => isPlanted;
     public bool IsReadyToHarvest => isPlanted && currentStage == CropGrowthStage.ReadyToHarvest;
     public CropSeedData CurrentSeed => currentSeed;
+    public long PlantedUnixTime => plantedUnixTime;
+
+    public Vector3Int OriginCell
+    {
+        get
+        {
+            var placed = GetComponent<PlacedFarmItem>();
+            if (placed != null)
+                return placed.originCell;
+
+            return Vector3Int.zero;
+        }
+    }
+
+    public string SaveKey
+    {
+        get
+        {
+            Vector3Int c = OriginCell;
+            return $"soil_{c.x}_{c.y}_{c.z}";
+        }
+    }
 
     private Vector3 cropStartLocalPos;
 
@@ -27,6 +49,132 @@ public class SoilPlot : MonoBehaviour
         }
 
         RefreshVisual();
+    }
+
+    private void Start()
+    {
+        SoilSaveManager.Instance?.RegisterPlot(this);
+    }
+
+    private void Update()
+    {
+        if (!isPlanted || currentSeed == null) return;
+        UpdateGrowth();
+    }
+
+    public bool CanPlant()
+    {
+        return !isPlanted;
+    }
+
+    public bool CanMove()
+    {
+        if (IsReadyToHarvest) return false;
+        return isPlanted;
+    }
+
+    public void Plant(CropSeedData seedData)
+    {
+        if (seedData == null) return;
+        if (!CanPlant()) return;
+
+        currentSeed = seedData;
+        plantedUnixTime = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        isPlanted = true;
+        currentStage = CropGrowthStage.Stage1;
+
+        RefreshVisual();
+        SoilSaveManager.Instance?.SaveAllPlots();
+    }
+
+    public void ClearPlot()
+    {
+        currentSeed = null;
+        plantedUnixTime = 0;
+        isPlanted = false;
+        currentStage = CropGrowthStage.Empty;
+
+        RefreshVisual();
+        SoilSaveManager.Instance?.SaveAllPlots();
+    }
+
+    public void Harvest()
+    {
+        if (!IsReadyToHarvest) return;
+
+        Sprite popupSprite = null;
+
+        if (currentSeed != null &&
+            currentSeed.harvestItem != null)
+        {
+            popupSprite = currentSeed.harvestItem.icon;
+
+            if (InventoryManager.Instance != null)
+            {
+                InventoryManager.Instance.AddItem(currentSeed.harvestItem, currentSeed.harvestAmount);
+            }
+        }
+
+        if (popupSprite != null && HarvestFXSpawner.Instance != null)
+        {
+            HarvestFXSpawner.Instance.PlayHarvestPopup(transform.position, popupSprite);
+        }
+
+        currentSeed = null;
+        plantedUnixTime = 0;
+        isPlanted = false;
+        currentStage = CropGrowthStage.Empty;
+
+        RefreshVisual();
+        SoilSaveManager.Instance?.SaveAllPlots();
+    }
+
+    public void LoadState(CropSeedData seedData, long plantedTime, bool planted)
+    {
+        currentSeed = seedData;
+        plantedUnixTime = plantedTime;
+        isPlanted = planted;
+
+        if (!isPlanted || currentSeed == null)
+            currentStage = CropGrowthStage.Empty;
+        else
+            UpdateGrowthImmediate();
+
+        RefreshVisual();
+    }
+
+    private void UpdateGrowth()
+    {
+        CropGrowthStage newStage = GetStageByTime();
+
+        if (newStage != currentStage)
+        {
+            currentStage = newStage;
+            RefreshVisual();
+        }
+    }
+
+    private void UpdateGrowthImmediate()
+    {
+        currentStage = GetStageByTime();
+    }
+
+    private CropGrowthStage GetStageByTime()
+    {
+        if (!isPlanted || currentSeed == null)
+            return CropGrowthStage.Empty;
+
+        long now = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        double elapsed = now - plantedUnixTime;
+        double halfTime = currentSeed.growDurationSeconds * 0.5f;
+
+        if (elapsed < halfTime)
+            return CropGrowthStage.Stage1;
+
+        if (elapsed < currentSeed.growDurationSeconds)
+            return CropGrowthStage.Stage2;
+
+        return CropGrowthStage.ReadyToHarvest;
     }
 
     private void RefreshVisual()
@@ -86,103 +234,4 @@ public class SoilPlot : MonoBehaviour
             cropRenderer.transform.position = worldPos;
         }
     }
-
-    private void Update()
-    {
-        if (!isPlanted || currentSeed == null) return;
-        UpdateGrowth();
-    }
-
-    public bool CanPlant()
-    {
-        return !isPlanted;
-    }
-
-    public void Plant(CropSeedData seedData)
-    {
-        if (seedData == null) return;
-        if (!CanPlant()) return;
-
-        currentSeed = seedData;
-        isPlanted = true;
-
-        if (cropRenderer != null)
-        {
-            cropRenderer.sprite = seedData.stage1Sprite;
-            cropRenderer.enabled = true;
-        }
-    }
-
-    public void ClearPlot()
-    {
-        currentSeed = null;
-        isPlanted = false;
-
-        if (cropRenderer != null)
-        {
-            cropRenderer.sprite = null;
-            cropRenderer.enabled = false;
-        }
-    }
-
-    public void Harvest()
-    {
-        if (!IsReadyToHarvest) return;
-
-        // TODO: cộng item vào kho tại đây nếu cần
-
-        currentSeed = null;
-        plantedTime = 0f;
-        isPlanted = false;
-        currentStage = CropGrowthStage.Empty;
-
-        RefreshVisual();
-    }
-
-    private void UpdateGrowth()
-    {
-        float elapsed = Time.time - plantedTime;
-        float halfTime = currentSeed.growDurationSeconds * 0.5f;
-
-        CropGrowthStage newStage;
-
-        if (elapsed < halfTime)
-            newStage = CropGrowthStage.Stage1;
-        else if (elapsed < currentSeed.growDurationSeconds)
-            newStage = CropGrowthStage.Stage2;
-        else
-            newStage = CropGrowthStage.ReadyToHarvest;
-
-        if (newStage != currentStage)
-        {
-            currentStage = newStage;
-            RefreshVisual();
-        }
-    }
-
-    
-
-    private void OnMouseDown()
-    {
-        if (IsReadyToHarvest)
-        {
-            Harvest();
-        }
-    }
-
-    private void OnMouseUpAsButton()
-    {
-        if (IsReadyToHarvest)
-        {
-            Harvest();
-            return;
-        }
-
-        if (!isPlanted)
-        {
-            UIManager.Instance.OpenUI<PanelSow>();
-        }
-    }
-
-    
 }

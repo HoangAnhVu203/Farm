@@ -7,8 +7,15 @@ public class CropSeedData : ScriptableObject
     public string cropName;
     public float growDurationSeconds = 30f;
 
+    [Header("Seed UI")]
+    public Sprite seedIcon;
+
+    [Header("Harvest")]
+    public FarmInventoryItemData harvestItem;
+    public int harvestAmount = 1;
+
     [Header("Stage Sprites")]
-    public Sprite stage1Sprite; // mới gieo
-    public Sprite stage2Sprite; // nửa thời gian
-    public Sprite stage3Sprite; // hoàn thành
+    public Sprite stage1Sprite;
+    public Sprite stage2Sprite;
+    public Sprite stage3Sprite;
 }

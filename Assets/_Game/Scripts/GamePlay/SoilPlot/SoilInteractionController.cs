@@ -11,7 +11,6 @@ public class SoilInteractionController : MonoBehaviour
     [SerializeField] private Camera mainCamera;
 
     private SoilPlot selectedSoil;
-
     public bool IsHandlingSoilClick { get; private set; }
 
     public SoilPlot GetSelectedSoil() => selectedSoil;
@@ -46,6 +45,13 @@ public class SoilInteractionController : MonoBehaviour
         if (!WasPrimaryPressStarted()) return;
         if (IsPointerOverUI()) return;
 
+        // đang harvest mode thì không mở panel nữa
+        if (HarvestController.Instance != null && HarvestController.Instance.IsHarvestMode)
+            return;
+
+        if (SowController.Instance != null && SowController.Instance.IsSowMode)
+        return;
+
         Vector3 world = GetPrimaryWorldPosition();
         Collider2D hit = Physics2D.OverlapPoint(world);
         if (hit == null) return;
@@ -55,7 +61,15 @@ public class SoilInteractionController : MonoBehaviour
 
         selectedSoil = soil;
 
-        // Soil trống: mở PanelSow và chặn move
+        // Đất chín -> mở panel harvest
+        if (soil.IsReadyToHarvest)
+        {
+            IsHandlingSoilClick = true;
+            UIManager.Instance.OpenUI<PanelHarvest>();
+            return;
+        }
+
+        // Đất trống -> mở panel sow
         if (!soil.IsPlanted)
         {
             IsHandlingSoilClick = true;
@@ -63,9 +77,8 @@ public class SoilInteractionController : MonoBehaviour
             return;
         }
 
-        // Soil đã trồng:
-        // không set IsHandlingSoilClick
-        // để FarmPlacementController tiếp tục xử lý move
+        // Đang trồng nhưng chưa chín -> không xử lý ở đây
+        // để FarmPlacementController quyết định move nếu muốn
     }
 
     private Vector3 GetPrimaryWorldPosition()

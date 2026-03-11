@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4286254069186502574}
-  - component: {fileID: 4449492877127546311}
   - component: {fileID: 7414483947377522880}
   m_Layer: 0
   m_Name: Foot
@@ -27,29 +26,12 @@ Transform:
   m_GameObject: {fileID: 116767201057653942}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.084, y: -0.529, z: 0}
+  m_LocalPosition: {x: -0.083, y: -0.7095, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6254406687321121131}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4449492877127546311
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 116767201057653942}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a9e7d00b15124bacb31d1fb72ea363f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlaceableObject
-  footprintSize: {x: 2, y: 2}
-  canPlaceOnGrass: 1
-  canPlaceOnSoil: 0
-  visualRoot: {fileID: 6254406687321121131}
-  footAnchor: {fileID: 0}
 --- !u!60 &7414483947377522880
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -57,7 +39,7 @@ PolygonCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 116767201057653942}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -113,6 +95,8 @@ GameObject:
   - component: {fileID: 6254406687321121131}
   - component: {fileID: 1274826533665313154}
   - component: {fileID: 3995566190161561652}
+  - component: {fileID: 2176683478053886105}
+  - component: {fileID: 4231670830104545119}
   m_Layer: 0
   m_Name: Apple_Tree
   m_TagString: Untagged
@@ -279,3 +263,32 @@ PolygonCollider2D:
       - {x: 0.099999994, y: -0.04}
       - {x: 0.04, y: -0.04}
   m_UseDelaunayMesh: 1
+--- !u!114 &2176683478053886105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5903620105310189638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a9e7d00b15124bacb31d1fb72ea363f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlaceableObject
+  footprintSize: {x: 2, y: 2}
+  canPlaceOnGrass: 1
+  canPlaceOnSoil: 0
+  visualRoot: {fileID: 6254406687321121131}
+  footAnchor: {fileID: 4286254069186502574}
+--- !u!114 &4231670830104545119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5903620105310189638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27103bf6c1af7428e93cd89bd429b7ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlacedFarmItem

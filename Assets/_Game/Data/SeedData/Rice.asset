@@ -15,6 +15,9 @@ MonoBehaviour:
   id: 0
   cropName: Rice
   growDurationSeconds: 20
+  seedIcon: {fileID: 6271399085124507442, guid: c144aca3d64a0494cb5af72975220bea, type: 3}
+  harvestItem: {fileID: 11400000, guid: 446b7eeaff3bc4380ac4a01b5a67b706, type: 2}
+  harvestAmount: 1
   stage1Sprite: {fileID: 2268137170387821251, guid: c6a6f16bcb1cf4f09bffe6543fda7887, type: 3}
   stage2Sprite: {fileID: 7008873624611036555, guid: a31b37e82bb73411a8ca472adb15b266, type: 3}
   stage3Sprite: {fileID: 7878423251742554125, guid: 1a0bbe356cfdb4bd4ba1aaf38266a1a6, type: 3}

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2089188309986733169}
   - component: {fileID: 5872237051120205333}
   - component: {fileID: 6861408874985845258}
+  - component: {fileID: 6083290450414687985}
   m_Layer: 0
   m_Name: CowBarn
   m_TagString: Untagged
@@ -265,6 +266,20 @@ MonoBehaviour:
   canPlaceOnSoil: 0
   visualRoot: {fileID: 4264269462351964708}
   footAnchor: {fileID: 6210289006246032927}
+--- !u!114 &6083290450414687985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3724968548467567069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89d105c17a055354abdcac17c4e50f0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsoSorting
+  foot: {fileID: 6210289006246032927}
+  sr: {fileID: 2089188309986733169}
 --- !u!1 &7091937272051009271
 GameObject:
   m_ObjectHideFlags: 0

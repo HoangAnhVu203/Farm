@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CropSeedData
   id: 2
   cropName: Carrot
-  growDurationSeconds: 90
+  growDurationSeconds: 20
+  seedIcon: {fileID: 2950869812727453837, guid: e00bd6f19847a49568fe8aa6b60af194, type: 3}
+  harvestItem: {fileID: 11400000, guid: 1eaa4a50745934d1886c4bc660f8bca2, type: 2}
+  harvestAmount: 1
   stage1Sprite: {fileID: 2268137170387821251, guid: c6a6f16bcb1cf4f09bffe6543fda7887, type: 3}
   stage2Sprite: {fileID: -2516168137537136495, guid: 75bc59c4d9d724e9a8eef6de3fde47ce, type: 3}
   stage3Sprite: {fileID: -7956645068018154587, guid: 9beea9f5af2d94ec5aa5a114b799bd58, type: 3}

@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CropSeedData
   id: 1
   cropName: Corn
-  growDurationSeconds: 30
+  growDurationSeconds: 20
+  seedIcon: {fileID: -6521346793507321066, guid: ffce2c9f6dd22425b9f85880d45893e9, type: 3}
+  harvestItem: {fileID: 11400000, guid: ccb939b11a21f475692b04d8ec73a377, type: 2}
+  harvestAmount: 1
   stage1Sprite: {fileID: 2268137170387821251, guid: c6a6f16bcb1cf4f09bffe6543fda7887, type: 3}
   stage2Sprite: {fileID: 1297706194647924194, guid: 24a5a78727fc3403eaa81b7e601e2886, type: 3}
   stage3Sprite: {fileID: -3008747713979091023, guid: b968edd8ea2cd456a8be783b6f3598c3, type: 3}

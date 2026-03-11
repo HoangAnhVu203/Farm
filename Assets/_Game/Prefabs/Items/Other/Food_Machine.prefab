@@ -43,6 +43,7 @@ GameObject:
   - component: {fileID: 5054108523382735802}
   - component: {fileID: 483604320586265127}
   - component: {fileID: 5319641864538501112}
+  - component: {fileID: 6088341563692483770}
   m_Layer: 0
   m_Name: Food_Machine
   m_TagString: Untagged
@@ -239,3 +240,17 @@ PolygonCollider2D:
       - {x: 0.5, y: 0.65999997}
       - {x: 0.48999998, y: 0.66999996}
   m_UseDelaunayMesh: 1
+--- !u!114 &6088341563692483770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8585645359520049720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89d105c17a055354abdcac17c4e50f0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IsoSorting
+  foot: {fileID: 3765456186599815318}
+  sr: {fileID: 5054108523382735802}

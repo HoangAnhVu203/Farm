@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CropSeedData
   id: 4
   cropName: Pumpkin
-  growDurationSeconds: 120
+  growDurationSeconds: 20
+  seedIcon: {fileID: 5495699470122003472, guid: 7cfcfe6689a594c2998b90db9a3956d7, type: 3}
+  harvestItem: {fileID: 11400000, guid: 0a8d78c0cd794430fa344cafce7dbdab, type: 2}
+  harvestAmount: 1
   stage1Sprite: {fileID: 2268137170387821251, guid: c6a6f16bcb1cf4f09bffe6543fda7887, type: 3}
   stage2Sprite: {fileID: -2115898204335617811, guid: 2955027eb972146648864b9827f1d5da, type: 3}
   stage3Sprite: {fileID: 7081518532820765644, guid: bbc950e55fcdc4b73b403d84d47e7e47, type: 3}

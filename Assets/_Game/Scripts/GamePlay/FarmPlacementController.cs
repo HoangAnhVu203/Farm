@@ -404,17 +404,21 @@ public class FarmPlacementController : MonoBehaviour
         Collider2D hit = Physics2D.OverlapPoint(pressWorld);
         if (hit != null)
         {
-            // Ưu tiên check SoilPlot trước
             SoilPlot soil = hit.GetComponentInParent<SoilPlot>();
             if (soil != null)
             {
-                // Soil trống: không move
+                // đất trống: không move
                 if (!soil.IsPlanted)
-                {
                     return;
-                }
 
-                // Soil đã trồng: nếu object này có PlacedFarmItem thì cho move
+                // đất đã chín: không move
+                if (soil.IsReadyToHarvest)
+                    return;
+
+                // đất đang trồng nhưng chưa chín: cho move nếu muốn
+                if (!soil.CanMove())
+                    return;
+
                 PlacedFarmItem soilPlaced = hit.GetComponentInParent<PlacedFarmItem>();
                 if (soilPlaced != null)
                 {
@@ -423,7 +427,6 @@ public class FarmPlacementController : MonoBehaviour
                 }
             }
 
-            // Các placed item khác
             PlacedFarmItem placed = hit.GetComponentInParent<PlacedFarmItem>();
             if (placed != null)
             {
@@ -437,10 +440,13 @@ public class FarmPlacementController : MonoBehaviour
         if (FarmGridOccupancy.Instance != null &&
             FarmGridOccupancy.Instance.TryGetPlacedItemAtCell(cell, out var placedByCell))
         {
-            // Nếu là SoilPlot mà chưa trồng thì không move
             SoilPlot soilByCell = placedByCell.GetComponent<SoilPlot>();
-            if (soilByCell != null && !soilByCell.IsPlanted)
-                return;
+            if (soilByCell != null)
+            {
+                if (!soilByCell.IsPlanted) return;
+                if (soilByCell.IsReadyToHarvest) return;
+                if (!soilByCell.CanMove()) return;
+            }
 
             StartMovingPlacedItem(placedByCell);
         }

@@ -77,7 +77,7 @@ public class SoilSaveManager : MonoBehaviour
                 plotKey = plot.SaveKey,
                 isPlanted = plot.IsPlanted,
                 seedId = plot.CurrentSeed != null ? plot.CurrentSeed.id : "",
-                plantedUnixTime = plot.IsPlanted ? plot.PlantedUnixTime : 0
+                plantedUnixMs = plot.IsPlanted ? plot.PlantedUnixMs : 0
             };
 
             saveFile.plots.Add(data);
@@ -110,7 +110,7 @@ public class SoilSaveManager : MonoBehaviour
             if (!string.IsNullOrWhiteSpace(data.seedId))
                 seedLookup.TryGetValue(data.seedId, out seedData);
 
-            plot.LoadState(seedData, data.plantedUnixTime, data.isPlanted);
+            plot.LoadState(seedData, data.plantedUnixMs, data.isPlanted);
         }
     }
 

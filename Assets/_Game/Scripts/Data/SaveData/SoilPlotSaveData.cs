@@ -7,7 +7,7 @@ public class SoilPlotSaveData
     public string plotKey;
     public bool isPlanted;
     public string seedId;
-    public long plantedUnixTime;
+    public long plantedUnixMs;
 }
 
 [Serializable]

@@ -404,34 +404,63 @@ public class FarmPlacementController : MonoBehaviour
         Collider2D hit = Physics2D.OverlapPoint(pressWorld);
         if (hit != null)
         {
+            // Ưu tiên máy chế biến
+            FactoryMachine machine = hit.GetComponentInParent<FactoryMachine>();
+            if (machine != null)
+            {
+                // Chưa chế tạo -> mở panel, không move
+                if (!machine.IsCrafting)
+                {
+                    if (PanelFoodFactory.Instance != null)
+                    {
+                        PanelFoodFactory.Instance.OpenFor(machine);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("PanelFoodFactory.Instance is NULL");
+                    }
+                    return;
+                }
+
+                // Đang chế tạo -> cho move
+                PlacedFarmItem machinePlaced = hit.GetComponentInParent<PlacedFarmItem>();
+                if (machinePlaced != null)
+                {
+                    StartMovingPlacedItem(machinePlaced);
+                    return;
+                }
+            }
+
             SoilPlot soil = hit.GetComponentInParent<SoilPlot>();
             if (soil != null)
             {
-                // đất trống: không move
                 if (!soil.IsPlanted)
                     return;
 
-                // đất đã chín: không move
                 if (soil.IsReadyToHarvest)
                     return;
 
-                // đất đang trồng nhưng chưa chín: cho move nếu muốn
                 if (!soil.CanMove())
                     return;
 
                 PlacedFarmItem soilPlaced = hit.GetComponentInParent<PlacedFarmItem>();
                 if (soilPlaced != null)
                 {
-                    FocusCameraToPlacedItem(soilPlaced, hit);
                     StartMovingPlacedItem(soilPlaced);
                     return;
                 }
             }
 
+            StorageBuilding storage = hit.GetComponentInParent<StorageBuilding>();
+            if (storage != null)
+            {
+                UIManager.Instance.OpenUI<PanelStorage>();
+                return;
+            }
+
             PlacedFarmItem placed = hit.GetComponentInParent<PlacedFarmItem>();
             if (placed != null)
             {
-                FocusCameraToPlacedItem(placed, hit);
                 StartMovingPlacedItem(placed);
                 return;
             }
@@ -442,12 +471,33 @@ public class FarmPlacementController : MonoBehaviour
         if (FarmGridOccupancy.Instance != null &&
             FarmGridOccupancy.Instance.TryGetPlacedItemAtCell(cell, out var placedByCell))
         {
+            // Nếu là máy chế biến
+            FactoryMachine machineByCell = placedByCell.GetComponent<FactoryMachine>();
+            if (machineByCell != null)
+            {
+                if (!machineByCell.IsCrafting)
+                {
+                    PanelFoodFactory.Instance?.OpenFor(machineByCell);
+                    return;
+                }
+
+                StartMovingPlacedItem(placedByCell);
+                return;
+            }
+
             SoilPlot soilByCell = placedByCell.GetComponent<SoilPlot>();
             if (soilByCell != null)
             {
                 if (!soilByCell.IsPlanted) return;
                 if (soilByCell.IsReadyToHarvest) return;
                 if (!soilByCell.CanMove()) return;
+            }
+
+            StorageBuilding storageByCell = placedByCell.GetComponent<StorageBuilding>();
+            if (storageByCell != null)
+            {
+                UIManager.Instance.OpenUI<PanelStorage>();
+                return;
             }
 
             StartMovingPlacedItem(placedByCell);

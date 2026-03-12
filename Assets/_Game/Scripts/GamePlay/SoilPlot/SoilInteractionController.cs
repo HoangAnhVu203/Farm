@@ -54,10 +54,18 @@ public class SoilInteractionController : MonoBehaviour
 
         Vector3 world = GetPrimaryWorldPosition();
         Collider2D hit = Physics2D.OverlapPoint(world);
-        if (hit == null) return;
+        if (hit == null)
+        {
+            SoilGrowProgressUI.Instance?.Hide();
+            return;
+        }
 
         SoilPlot soil = hit.GetComponentInParent<SoilPlot>();
-        if (soil == null) return;
+        if (soil == null)
+        {
+            SoilGrowProgressUI.Instance?.Hide();
+            return;
+        }
 
         selectedSoil = soil;
         FocusCameraToSoil(soil, hit);
@@ -66,6 +74,7 @@ public class SoilInteractionController : MonoBehaviour
         if (soil.IsReadyToHarvest)
         {
             IsHandlingSoilClick = true;
+            SoilGrowProgressUI.Instance?.Hide();
             UIManager.Instance.OpenUI<PanelHarvest>();
             return;
         }
@@ -74,12 +83,18 @@ public class SoilInteractionController : MonoBehaviour
         if (!soil.IsPlanted)
         {
             IsHandlingSoilClick = true;
+            SoilGrowProgressUI.Instance?.Hide();
             UIManager.Instance.OpenUI<PanelSow>();
             return;
         }
 
-        // Đang trồng nhưng chưa chín -> không xử lý ở đây
-        // để FarmPlacementController quyết định move nếu muốn
+        // Đang trồng nhưng chưa chín -> hiện progress UI
+        if (soil.IsGrowing)
+        {
+            IsHandlingSoilClick = true;
+            SoilGrowProgressUI.Instance?.Show(soil);
+            return;
+        }
     }
 
     private Vector3 GetPrimaryWorldPosition()

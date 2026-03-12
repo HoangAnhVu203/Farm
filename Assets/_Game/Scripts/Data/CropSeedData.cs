@@ -10,6 +10,9 @@ public class CropSeedData : ScriptableObject
     [Header("Seed UI")]
     public Sprite seedIcon;
 
+    [Header("Instant Complete")]
+    public int instantFinishCoinCost = 3;
+
     [Header("Harvest")]
     public FarmInventoryItemData harvestItem;
     public int harvestAmount = 1;

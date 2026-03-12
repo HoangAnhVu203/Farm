@@ -7,14 +7,16 @@ public class SoilPlot : MonoBehaviour
     [SerializeField] private SpriteRenderer cropRenderer;
 
     private CropSeedData currentSeed;
-    private long plantedUnixTime;
+
     private bool isPlanted;
     private CropGrowthStage currentStage = CropGrowthStage.Empty;
 
     public bool IsPlanted => isPlanted;
     public bool IsReadyToHarvest => isPlanted && currentStage == CropGrowthStage.ReadyToHarvest;
     public CropSeedData CurrentSeed => currentSeed;
-    public long PlantedUnixTime => plantedUnixTime;
+    private long plantedUnixMs;
+    public long PlantedUnixMs => plantedUnixMs;
+    public bool IsGrowing => isPlanted && currentStage != CropGrowthStage.ReadyToHarvest;
 
     public Vector3Int OriginCell
     {
@@ -79,7 +81,7 @@ public class SoilPlot : MonoBehaviour
         if (!CanPlant()) return;
 
         currentSeed = seedData;
-        plantedUnixTime = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        plantedUnixMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         isPlanted = true;
         currentStage = CropGrowthStage.Stage1;
 
@@ -95,7 +97,7 @@ public class SoilPlot : MonoBehaviour
     public void ClearPlot()
     {
         currentSeed = null;
-        plantedUnixTime = 0;
+        plantedUnixMs = 0;
         isPlanted = false;
         currentStage = CropGrowthStage.Empty;
 
@@ -126,7 +128,7 @@ public class SoilPlot : MonoBehaviour
         }
 
         currentSeed = null;
-        plantedUnixTime = 0;
+        plantedUnixMs = 0;
         isPlanted = false;
         currentStage = CropGrowthStage.Empty;
 
@@ -134,10 +136,10 @@ public class SoilPlot : MonoBehaviour
         SoilSaveManager.Instance?.SaveAllPlots();
     }
 
-    public void LoadState(CropSeedData seedData, long plantedTime, bool planted)
+    public void LoadState(CropSeedData seedData, long plantedTimeMs, bool planted)
     {
         currentSeed = seedData;
-        plantedUnixTime = plantedTime;
+        plantedUnixMs = plantedTimeMs;
         isPlanted = planted;
 
         if (!isPlanted || currentSeed == null)
@@ -169,14 +171,14 @@ public class SoilPlot : MonoBehaviour
         if (!isPlanted || currentSeed == null)
             return CropGrowthStage.Empty;
 
-        long now = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        double elapsed = now - plantedUnixTime;
+        double nowMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        double elapsedSeconds = (nowMs - plantedUnixMs) / 1000.0;
         double halfTime = currentSeed.growDurationSeconds * 0.5f;
 
-        if (elapsed < halfTime)
+        if (elapsedSeconds < halfTime)
             return CropGrowthStage.Stage1;
 
-        if (elapsed < currentSeed.growDurationSeconds)
+        if (elapsedSeconds < currentSeed.growDurationSeconds)
             return CropGrowthStage.Stage2;
 
         return CropGrowthStage.ReadyToHarvest;
@@ -238,5 +240,42 @@ public class SoilPlot : MonoBehaviour
         {
             cropRenderer.transform.position = worldPos;
         }
+    }
+
+    public float GetGrowProgress01()
+    {
+        if (!isPlanted || currentSeed == null || currentSeed.growDurationSeconds <= 0f)
+            return 0f;
+
+        double nowMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        double elapsedSeconds = (nowMs - plantedUnixMs) / 1000.0;
+
+        return Mathf.Clamp01((float)(elapsedSeconds / currentSeed.growDurationSeconds));
+    }
+
+    public float GetRemainingSeconds()
+    {
+        if (!isPlanted || currentSeed == null)
+            return 0f;
+
+        double nowMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        double elapsedSeconds = (nowMs - plantedUnixMs) / 1000.0;
+
+        float remain = currentSeed.growDurationSeconds - (float)elapsedSeconds;
+        return Mathf.Max(0f, remain);
+    }
+
+    public void FinishInstantly()
+    {
+        if (!isPlanted || currentSeed == null) return;
+        if (IsReadyToHarvest) return;
+
+        currentStage = CropGrowthStage.ReadyToHarvest;
+
+        long nowMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        plantedUnixMs = nowMs - Mathf.CeilToInt(currentSeed.growDurationSeconds * 1000f);
+
+        RefreshVisual();
+        SoilSaveManager.Instance?.SaveAllPlots();
     }
 }

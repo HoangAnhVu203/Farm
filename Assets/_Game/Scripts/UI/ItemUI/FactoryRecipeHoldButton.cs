@@ -1,12 +1,18 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class FactoryRecipeHoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+public class FactoryRecipeHoldButton : MonoBehaviour,
+    IPointerDownHandler,
+    IPointerUpHandler,
+    IBeginDragHandler,
+    IDragHandler,
+    IEndDragHandler
 {
     [SerializeField] private PanelFoodFactory ownerPanel;
     [SerializeField] private FoodRecipeData recipeData;
 
     private bool isHolding;
+    private bool dragStarted;
 
     public void Setup(PanelFoodFactory panel, FoodRecipeData recipe)
     {
@@ -19,55 +25,70 @@ public class FactoryRecipeHoldButton : MonoBehaviour, IPointerDownHandler, IPoin
         if (ownerPanel == null || recipeData == null) return;
 
         isHolding = true;
-        ownerPanel.ShowIngredientTable(recipeData);
+        dragStarted = false;
 
-        if (ownerPanel.CanCraft(recipeData))
+        ownerPanel.ShowIngredientTable(recipeData);
+        Debug.Log("[FactoryButton] PointerDown -> show ingredient");
+    }
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        if (!isHolding) return;
+        if (ownerPanel == null || recipeData == null) return;
+
+        if (!ownerPanel.CanCraft(recipeData))
         {
-            FactoryCraftDragController.Instance?.BeginDrag(recipeData, ownerPanel.GetCurrentMachine());
-            ownerPanel.HidePanelOnly();
+            Debug.Log("[FactoryButton] Không đủ nguyên liệu, không cho drag");
+            return;
         }
+
+        dragStarted = true;
+
+        FactoryCraftDragController.Instance?.BeginDrag(recipeData, ownerPanel.GetCurrentMachine());
+
+        // Ẩn phần nút recipe, nhưng không tắt cả panel script
+        ownerPanel.HideVisualOnly();
+
+        Debug.Log("[FactoryButton] BeginDrag");
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (!dragStarted) return;
+
+        // Không cần làm gì ở đây nếu icon kéo đã tự follow chuột trong CursorUI
+        // Giữ lại để Unity xác nhận đây là drag thật
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        Debug.Log("[FactoryButton] EndDrag");
+        FinishHoldAndDrop();
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        StopHold();
+        // Trường hợp chỉ bấm rồi thả, hoặc một số device không gọi EndDrag như mong đợi
+        Debug.Log("[FactoryButton] PointerUp");
+        FinishHoldAndDrop();
     }
 
-    private void Update()
+    private void FinishHoldAndDrop()
     {
         if (!isHolding) return;
 
-        if (!IsPrimaryPressed())
-        {
-            StopHold();
-        }
-    }
-
-    private void StopHold()
-    {
-        if (!isHolding) return;
         isHolding = false;
 
-        FactoryCraftDragController.Instance?.EndDrag();
-
-        if (ownerPanel != null)
-            ownerPanel.CloseUI();
-    }
-
-    private bool IsPrimaryPressed()
-    {
-        var mouse = UnityEngine.InputSystem.Mouse.current;
-        if (mouse != null)
-            return mouse.leftButton.isPressed;
-
-        if (UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches.Count > 0)
+        if (dragStarted)
         {
-            var phase = UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches[0].phase;
-            return phase == UnityEngine.InputSystem.TouchPhase.Began
-                || phase == UnityEngine.InputSystem.TouchPhase.Moved
-                || phase == UnityEngine.InputSystem.TouchPhase.Stationary;
+            FactoryCraftDragController.Instance?.EndDrag();
+            ownerPanel?.CloseUI();
+        }
+        else
+        {
+            ownerPanel?.HideIngredientTable();
         }
 
-        return false;
+        dragStarted = false;
     }
 }

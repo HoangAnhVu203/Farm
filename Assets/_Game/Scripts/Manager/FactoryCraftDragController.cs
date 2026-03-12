@@ -31,13 +31,19 @@ public class FactoryCraftDragController : MonoBehaviour
 
     public void BeginDrag(FoodRecipeData recipe, FactoryMachine machine)
     {
-        if (recipe == null || machine == null) return;
+        if (recipe == null || machine == null)
+        {
+            Debug.LogWarning("[CraftDrag] BeginDrag fail: recipe hoặc machine null");
+            return;
+        }
 
         currentRecipe = recipe;
         targetMachine = machine;
         isDragging = true;
 
         FactoryRecipeCursorUI.Instance?.Show(recipe);
+
+        Debug.Log($"[CraftDrag] BeginDrag recipe = {recipe.recipeName}, machine = {machine.name}");
     }
 
     public void EndDrag()
@@ -47,35 +53,53 @@ public class FactoryCraftDragController : MonoBehaviour
 
         bool crafted = TryDropOnMachine();
 
+        Debug.Log("[CraftDrag] EndDrag -> crafted = " + crafted);
+
         isDragging = false;
         currentRecipe = null;
         targetMachine = null;
 
         FactoryRecipeCursorUI.Instance?.Hide();
-
-        if (!crafted)
-        {
-            // không craft thì thôi
-        }
     }
 
     private bool TryDropOnMachine()
     {
-        if (currentRecipe == null || targetMachine == null) return false;
+        if (currentRecipe == null || targetMachine == null)
+            return false;
 
         Vector3 world = GetPrimaryWorldPosition();
         Collider2D hit = Physics2D.OverlapPoint(world);
-        if (hit == null) return false;
 
-        if (!(hit.transform == targetMachine.transform || hit.transform.IsChildOf(targetMachine.transform)))
+        if (hit == null)
+        {
+            Debug.LogWarning("[CraftDrag] Không hit collider nào khi thả");
             return false;
+        }
 
-        return targetMachine.StartCraft(currentRecipe);
+        Debug.Log("[CraftDrag] Drop hit = " + hit.name);
+
+        FactoryMachine hitMachine = hit.GetComponentInParent<FactoryMachine>();
+        if (hitMachine == null)
+        {
+            Debug.LogWarning("[CraftDrag] Hit không phải FactoryMachine");
+            return false;
+        }
+
+        if (hitMachine != targetMachine)
+        {
+            Debug.LogWarning("[CraftDrag] Thả nhầm máy");
+            return false;
+        }
+
+        bool ok = targetMachine.StartCraft(currentRecipe);
+        Debug.Log("[CraftDrag] StartCraft = " + ok);
+        return ok;
     }
 
     private Vector3 GetPrimaryWorldPosition()
     {
         Vector2 screenPos = GetPrimaryScreenPosition();
+
         Vector3 screen = new Vector3(
             screenPos.x,
             screenPos.y,

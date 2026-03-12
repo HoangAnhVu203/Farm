@@ -411,14 +411,7 @@ public class FarmPlacementController : MonoBehaviour
                 // Chưa chế tạo -> mở panel, không move
                 if (!machine.IsCrafting)
                 {
-                    if (PanelFoodFactory.Instance != null)
-                    {
-                        PanelFoodFactory.Instance.OpenFor(machine);
-                    }
-                    else
-                    {
-                        Debug.LogWarning("PanelFoodFactory.Instance is NULL");
-                    }
+                    PanelFoodFactory.Open(machine);
                     return;
                 }
 
@@ -477,7 +470,7 @@ public class FarmPlacementController : MonoBehaviour
             {
                 if (!machineByCell.IsCrafting)
                 {
-                    PanelFoodFactory.Instance?.OpenFor(machineByCell);
+                    PanelFoodFactory.Open(machineByCell);
                     return;
                 }
 

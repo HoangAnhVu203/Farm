@@ -29,6 +29,18 @@ public class FactoryCraftDragController : MonoBehaviour
             mainCamera = Camera.main;
     }
 
+    private void Update()
+    {
+        if (!isDragging) return;
+
+        // Khi đang kéo, chỉ cần phát hiện lúc người chơi nhả chuột/tay
+        if (WasPrimaryReleased())
+        {
+            Vector2 releaseScreenPos = GetPrimaryScreenPosition();
+            FinishDrag(releaseScreenPos);
+        }
+    }
+
     public void BeginDrag(FoodRecipeData recipe, FactoryMachine machine)
     {
         if (recipe == null || machine == null)
@@ -46,14 +58,11 @@ public class FactoryCraftDragController : MonoBehaviour
         Debug.Log($"[CraftDrag] BeginDrag recipe = {recipe.recipeName}, machine = {machine.name}");
     }
 
-    public void EndDrag()
+    public void CancelDrag()
     {
-        if (!isDragging)
-            return;
+        if (!isDragging) return;
 
-        bool crafted = TryDropOnMachine();
-
-        Debug.Log("[CraftDrag] EndDrag -> crafted = " + crafted);
+        Debug.Log("[CraftDrag] CancelDrag");
 
         isDragging = false;
         currentRecipe = null;
@@ -62,44 +71,62 @@ public class FactoryCraftDragController : MonoBehaviour
         FactoryRecipeCursorUI.Instance?.Hide();
     }
 
-    private bool TryDropOnMachine()
+    private void FinishDrag(Vector2 releaseScreenPos)
+    {
+        if (!isDragging) return;
+
+        bool crafted = TryDropOnMachine(releaseScreenPos);
+        Debug.Log("[CraftDrag] FinishDrag -> crafted = " + crafted);
+
+        isDragging = false;
+        currentRecipe = null;
+        targetMachine = null;
+
+        FactoryRecipeCursorUI.Instance?.Hide();
+
+        PanelFoodFactory panel = Object.FindFirstObjectByType<PanelFoodFactory>(FindObjectsInactive.Include);
+        if (panel != null)
+            panel.CloseUI();
+    }
+
+    private bool TryDropOnMachine(Vector2 screenPos)
     {
         if (currentRecipe == null || targetMachine == null)
             return false;
 
-        Vector3 world = GetPrimaryWorldPosition();
-        Collider2D hit = Physics2D.OverlapPoint(world);
+        Vector3 world = ScreenToWorld(screenPos);
 
-        if (hit == null)
+        Collider2D[] hits = Physics2D.OverlapPointAll(world);
+        if (hits == null || hits.Length == 0)
         {
             Debug.LogWarning("[CraftDrag] Không hit collider nào khi thả");
             return false;
         }
 
-        Debug.Log("[CraftDrag] Drop hit = " + hit.name);
-
-        FactoryMachine hitMachine = hit.GetComponentInParent<FactoryMachine>();
-        if (hitMachine == null)
+        for (int i = 0; i < hits.Length; i++)
         {
-            Debug.LogWarning("[CraftDrag] Hit không phải FactoryMachine");
-            return false;
+            Debug.Log("[CraftDrag] Drop hit = " + hits[i].name);
+
+            FactoryMachine hitMachine = hits[i].GetComponentInParent<FactoryMachine>();
+            if (hitMachine == null) continue;
+
+            if (hitMachine != targetMachine)
+            {
+                Debug.LogWarning("[CraftDrag] Thả trúng machine khác");
+                continue;
+            }
+
+            bool ok = targetMachine.StartCraft(currentRecipe);
+            Debug.Log("[CraftDrag] StartCraft = " + ok);
+            return ok;
         }
 
-        if (hitMachine != targetMachine)
-        {
-            Debug.LogWarning("[CraftDrag] Thả nhầm máy");
-            return false;
-        }
-
-        bool ok = targetMachine.StartCraft(currentRecipe);
-        Debug.Log("[CraftDrag] StartCraft = " + ok);
-        return ok;
+        Debug.LogWarning("[CraftDrag] Không thả trúng đúng máy cần craft");
+        return false;
     }
 
-    private Vector3 GetPrimaryWorldPosition()
+    private Vector3 ScreenToWorld(Vector2 screenPos)
     {
-        Vector2 screenPos = GetPrimaryScreenPosition();
-
         Vector3 screen = new Vector3(
             screenPos.x,
             screenPos.y,
@@ -120,5 +147,20 @@ public class FactoryCraftDragController : MonoBehaviour
             return Mouse.current.position.ReadValue();
 
         return Vector2.zero;
+    }
+
+    private bool WasPrimaryReleased()
+    {
+        if (Mouse.current != null && Mouse.current.leftButton.wasReleasedThisFrame)
+            return true;
+
+        if (Touch.activeTouches.Count > 0)
+        {
+            var phase = Touch.activeTouches[0].phase;
+            return phase == UnityEngine.InputSystem.TouchPhase.Ended ||
+                   phase == UnityEngine.InputSystem.TouchPhase.Canceled;
+        }
+
+        return false;
     }
 }

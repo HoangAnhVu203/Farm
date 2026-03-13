@@ -404,24 +404,33 @@ public class FarmPlacementController : MonoBehaviour
         Collider2D hit = Physics2D.OverlapPoint(pressWorld);
         if (hit != null)
         {
-            // Ưu tiên máy chế biến
             FactoryMachine machine = hit.GetComponentInParent<FactoryMachine>();
             if (machine != null)
             {
-                // Chưa chế tạo -> mở panel, không move
+                PlacedFarmItem machinePlaced = hit.GetComponentInParent<PlacedFarmItem>();
+
+                if (machinePlaced != null)
+                    FocusCameraToPlacedItem(machinePlaced, hit);
+                else
+                    CameraFocusController.Instance?.FocusToPosition(hit.bounds.center);
+
+                // Chưa chế tạo -> mở panel chọn recipe
                 if (!machine.IsCrafting)
                 {
                     PanelFoodFactory.Open(machine);
                     return;
                 }
 
-                // Đang chế tạo -> cho move
-                PlacedFarmItem machinePlaced = hit.GetComponentInParent<PlacedFarmItem>();
+                // Đang chế tạo -> vừa show progress vừa cho move
+                FactoryCraftProgressUI.Instance?.Show(machine);
+
                 if (machinePlaced != null)
                 {
                     StartMovingPlacedItem(machinePlaced);
                     return;
                 }
+
+                return;
             }
 
             SoilPlot soil = hit.GetComponentInParent<SoilPlot>();
@@ -464,16 +473,20 @@ public class FarmPlacementController : MonoBehaviour
         if (FarmGridOccupancy.Instance != null &&
             FarmGridOccupancy.Instance.TryGetPlacedItemAtCell(cell, out var placedByCell))
         {
-            // Nếu là máy chế biến
             FactoryMachine machineByCell = placedByCell.GetComponent<FactoryMachine>();
             if (machineByCell != null)
             {
+                FocusCameraToPlacedItem(placedByCell, null);
+
+                // Chưa chế tạo -> mở panel chọn recipe
                 if (!machineByCell.IsCrafting)
                 {
                     PanelFoodFactory.Open(machineByCell);
                     return;
                 }
 
+                // Đang chế tạo -> vừa show progress vừa cho move
+                FactoryCraftProgressUI.Instance?.Show(machineByCell);
                 StartMovingPlacedItem(placedByCell);
                 return;
             }

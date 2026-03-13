@@ -7,6 +7,9 @@ public class PlacedFarmItem : MonoBehaviour
     public Vector3Int originCell { get; private set; }
     public List<Vector3Int> occupiedCells { get; private set; } = new();
 
+    public bool isPreplaced = false;
+    public string uniqueId;
+
     public void Init(FarmItemData data, Vector3Int origin, List<Vector3Int> cells)
     {
         itemData = data;

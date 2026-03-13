@@ -156,4 +156,6 @@ public class PanelFoodFactory : UICanvas
         HideIngredientTable();
         UIManager.Instance.CloseUIDirectly<PanelFoodFactory>();
     }
+
+    
 }

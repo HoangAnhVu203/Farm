@@ -15,4 +15,14 @@ public class PlacedItemSaveData
 public class FarmSaveData
 {
     public List<PlacedItemSaveData> placedItems = new();
+    public List<PreplacedItemSaveData> preplacedItems = new();
+}
+
+[Serializable]
+public class PreplacedItemSaveData
+{
+    public string uniqueId;
+    public int originX;
+    public int originY;
+    public int originZ;
 }

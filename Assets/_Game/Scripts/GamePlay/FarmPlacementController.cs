@@ -31,8 +31,11 @@ public class FarmPlacementController : MonoBehaviour
 
     private FarmItemData currentItemData;
     private GameObject previewObject;
-    private Vector3Int currentPreviewCell;   // origin cell của footprint
-    private Vector3Int bestPreviewCell;      // origin cell hợp lệ gần nhất / hiện tại
+    private Vector3Int currentPreviewCell;   
+    private Vector3Int bestPreviewCell;
+
+    private AnimalPen hoveredAnimalPen;
+    private AnimalPen validAnimalPen;
 
     private bool isPlacing;
     private bool hasValidCell;
@@ -112,11 +115,16 @@ public class FarmPlacementController : MonoBehaviour
         isDraggingPreview = false;
         hasValidCell = false;
 
+        hoveredAnimalPen = null;
+        validAnimalPen = null;
+
         previewObject = Instantiate(itemData.prefab);
         CacheOriginalColors(previewObject);
         SetPreviewVisual(previewObject, true);
 
-        if (spawnAtScreenCenter)
+        if (itemData.isAnimal)
+            SpawnPreviewNearCameraCenter();
+        else if (spawnAtScreenCenter)
             SpawnPreviewNearCameraCenter();
         else
             MovePreviewToFirstValidZone();
@@ -191,13 +199,22 @@ public class FarmPlacementController : MonoBehaviour
             Vector3 desiredRootWorld = pointerWorld + dragPointerToRootOffset;
             desiredRootWorld.z = 0f;
 
-            Vector3Int originCell = GetOriginCellFromRootWorld(desiredRootWorld);
+            if (currentItemData != null && currentItemData.isAnimal)
+            {
+                previewTargetWorldPos = desiredRootWorld;
+                RefreshAnimalPreviewValidation(desiredRootWorld);
+            }
+            else
+            {
+                Vector3Int originCell = GetOriginCellFromRootWorld(desiredRootWorld);
 
-            currentPreviewCell = originCell;
-            previewTargetWorldPos = GetRootWorldFromOriginCell(originCell);
-            previewTargetWorldPos.z = 0f;
+                currentPreviewCell = originCell;
+                previewTargetWorldPos = GetRootWorldFromOriginCell(originCell);
+                previewTargetWorldPos.z = 0f;
 
-            RefreshPreviewValidationByCell(originCell);
+                RefreshPreviewValidationByCell(originCell);
+            }
+
             return;
         }
 
@@ -205,6 +222,39 @@ public class FarmPlacementController : MonoBehaviour
         {
             isDraggingPreview = false;
         }
+    }
+
+    private void RefreshAnimalPreviewValidation(Vector3 rootWorldPos)
+    {
+        if (previewObject == null || currentItemData == null) return;
+        if (!currentItemData.isAnimal) return;
+
+        hoveredAnimalPen = FindAnimalPenAtWorld(rootWorldPos);
+
+        if (hoveredAnimalPen != null && hoveredAnimalPen.CanAccept(currentItemData))
+        {
+            hasValidCell = true;
+            validAnimalPen = hoveredAnimalPen;
+            SetPreviewColor(previewObject, validColor);
+        }
+        else
+        {
+            hasValidCell = false;
+            validAnimalPen = null;
+            SetPreviewColor(previewObject, invalidColor);
+        }
+    }
+
+    private AnimalPen FindAnimalPenAtWorld(Vector3 worldPos)
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(worldPos, 0.2f);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            AnimalPen pen = hits[i].GetComponentInParent<AnimalPen>();
+            if (pen != null) return pen;
+        }
+
+        return null;
     }
 
     private void SmoothMovePreview()
@@ -257,6 +307,38 @@ public class FarmPlacementController : MonoBehaviour
     {
         if (!isPlacing) return;
         if (currentItemData == null || previewObject == null) return;
+
+        // ===== ĐẶT ĐỘNG VẬT =====
+        if (currentItemData.isAnimal)
+        {
+            if (!hasValidCell || validAnimalPen == null)
+                return;
+
+            RestoreOriginalColors(previewObject);
+            SetPreviewVisual(previewObject, false);
+
+            PlacedAnimal placedAnimal = previewObject.GetComponent<PlacedAnimal>();
+            if (placedAnimal == null)
+                placedAnimal = previewObject.AddComponent<PlacedAnimal>();
+
+            placedAnimal.Init(currentItemData, validAnimalPen);
+
+            previewObject = null;
+            currentItemData = null;
+            editingItem = null;
+            isPlacing = false;
+            isDraggingPreview = false;
+            hasValidCell = false;
+            hoveredAnimalPen = null;
+            validAnimalPen = null;
+
+            if (buyUI != null)
+                buyUI.Hide();
+
+            return;
+        }
+
+        // ===== ĐẶT ITEM THƯỜNG =====
         if (FarmItemZoneSystem.Instance == null) return;
         if (!hasValidCell) return;
 
@@ -324,9 +406,13 @@ public class FarmPlacementController : MonoBehaviour
         isPlacing = false;
         isDraggingPreview = false;
         hasValidCell = false;
+        hoveredAnimalPen = null;
+        validAnimalPen = null;
 
         if (buyUI != null)
             buyUI.Hide();
+
+        FactoryCraftProgressUI.Instance?.Hide();
     }
 
     public void CancelPlacement()
@@ -358,9 +444,13 @@ public class FarmPlacementController : MonoBehaviour
         isPlacing = false;
         isDraggingPreview = false;
         hasValidCell = false;
+        hoveredAnimalPen = null;
+        validAnimalPen = null;
 
         if (buyUI != null)
             buyUI.Hide();
+
+        FactoryCraftProgressUI.Instance?.Hide();
     }
 
     private void ForceClearCurrentPreview()
@@ -392,6 +482,8 @@ public class FarmPlacementController : MonoBehaviour
         isPlacing = false;
         isDraggingPreview = false;
         hasValidCell = false;
+        hoveredAnimalPen = null;
+        validAnimalPen = null;
 
         if (buyUI != null)
             buyUI.Hide();
@@ -400,6 +492,9 @@ public class FarmPlacementController : MonoBehaviour
     private void TryPickPlacedItemForMove()
     {
         Vector3 pressWorld = GetPrimaryWorldPosition();
+
+        // Ẩn progress UI trước — sẽ Show lại nếu click đúng machine đang craft
+        FactoryCraftProgressUI.Instance?.Hide();
 
         Collider2D hit = Physics2D.OverlapPoint(pressWorld);
         if (hit != null)
@@ -421,7 +516,7 @@ public class FarmPlacementController : MonoBehaviour
                     return;
                 }
 
-                // Đang chế tạo -> vừa show progress vừa cho move
+                // Đang chế tạo -> show progress và cho di chuyển
                 FactoryCraftProgressUI.Instance?.Show(machine);
 
                 if (machinePlaced != null)
@@ -485,7 +580,7 @@ public class FarmPlacementController : MonoBehaviour
                     return;
                 }
 
-                // Đang chế tạo -> vừa show progress vừa cho move
+                // Đang chế tạo -> show progress và cho di chuyển
                 FactoryCraftProgressUI.Instance?.Show(machineByCell);
                 StartMovingPlacedItem(placedByCell);
                 return;
@@ -829,4 +924,6 @@ public class FarmPlacementController : MonoBehaviour
         // fallback cuối cùng
         CameraFocusController.Instance.FocusTo(placedItem.transform);
     }
+
+
 } 

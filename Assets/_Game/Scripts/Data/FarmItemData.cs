@@ -16,4 +16,8 @@ public class FarmItemData : ScriptableObject
 
     [Header("Grid Size")]
     public Vector2Int size = Vector2Int.one;
+
+    [Header("Animal")]
+    public bool isAnimal = false;
+    public AnimalType animalType = AnimalType.None;
 }

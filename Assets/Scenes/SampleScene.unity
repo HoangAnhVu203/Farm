@@ -44217,6 +44217,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1161291081}
   m_CullTransparentMesh: 1
+--- !u!1 &1267825639 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8585645359520049720, guid: 0878d846b2fe343c896fa3229b0b358e, type: 3}
+  m_PrefabInstance: {fileID: 7453096146807344640}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1336437718 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8944010440947282314, guid: b454ea453e6aa404d940c5e35aba2122, type: 3}
@@ -44972,6 +44977,21 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 982479348180693915, guid: 0878d846b2fe343c896fa3229b0b358e, type: 3}
   m_PrefabInstance: {fileID: 7453096146807344640}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2106100516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1267825639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d1124c474434ecfb47a7c6dd3333a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PreplacedFactoryMachineBootstrap
+  itemData: {fileID: 11400000, guid: e2b93e59fdb5d4002a2aba9eb3a790aa, type: 2}
+  groundTilemap: {fileID: 689766352}
+  uniqueId: factory_machine_01
 --- !u!1 &2118550018
 GameObject:
   m_ObjectHideFlags: 0
@@ -45476,7 +45496,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8585645359520049720, guid: 0878d846b2fe343c896fa3229b0b358e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2106100516}
   m_SourcePrefab: {fileID: 100100000, guid: 0878d846b2fe343c896fa3229b0b358e, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

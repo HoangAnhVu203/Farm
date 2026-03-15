@@ -8,7 +8,9 @@ public class FarmWorldRestoreBootstrap : MonoBehaviour
 
     private IEnumerator Start()
     {
-        yield return null;
+        // Chờ đến cuối frame để đảm bảo tất cả Awake() + Start() (bao gồm
+        // PreplacedFactoryMachineBootstrap.Start()) đã chạy xong trước khi restore.
+        yield return new WaitForEndOfFrame();
 
         Debug.Log("[WORLD RESTORE] Start");
 
